@@ -357,27 +357,14 @@ export default function App() {
   const saveConfigToBackend = async (newConfig: any) => {
     setSyncState('saving');
     let success = false;
-    try {
-      // 1. Direct Firebase Firestore write on the client side (Instant live sync for Vercel & local development)
-      if (clientDb) {
-        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-        await executeWithRetry(async () => {
-          await setDoc(docRef, newConfig);
-        }, 3, 1000);
-        console.log("⚡ Saved successfully to Firestore directly from client!");
-        success = true;
-      }
-    } catch (dbErr) {
-      console.error('Error saving directly to Firestore from client:', dbErr);
-      try {
-        handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
-      } catch (formattedErr) {
-        console.error("Formatted WRITE error on config save:", formattedErr);
-      }
-    }
+    let finalConfig = newConfig;
 
     try {
-      // 2. Fallback REST API save for Node/container backup
+      // 1. Try to save using REST API first, which cleans up and migrates any huge base64 images on the server side!
+      // Add an 8-second timeout to prevent the POST request from hanging if payload is too big or connection is slow
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const res = await fetch('/api/site-config', {
         method: 'POST',
         headers: {
@@ -387,12 +374,41 @@ export default function App() {
           'Expires': '0'
         },
         body: JSON.stringify({ config: newConfig }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
-        success = true;
+        const data = await res.json();
+        if (data && data.success && data.config) {
+          finalConfig = data.config;
+          setSiteConfig(finalConfig);
+          localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
+          success = true;
+          console.log("⚡ Saved successfully via REST API and migrated base64 images!");
+        }
       }
     } catch (err) {
-      console.warn('REST save error (expected if running on serverless Vercel):', err);
+      console.warn('REST save error or timeout:', err);
+    }
+
+    // 2. Fallback to direct client-side Firestore write ONLY if REST API fails (or client is running purely client-side)
+    if (!success && clientDb) {
+      try {
+        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
+        await executeWithRetry(async () => {
+          await setDoc(docRef, finalConfig);
+        }, 3, 1000);
+        console.log("⚡ Saved successfully to Firestore directly from client as fallback!");
+        success = true;
+      } catch (dbErr) {
+        console.error('Error saving directly to Firestore from client:', dbErr);
+        try {
+          handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
+        } catch (formattedErr) {
+          console.error("Formatted WRITE error on config save:", formattedErr);
+        }
+      }
     }
 
     if (success) {
@@ -452,27 +468,14 @@ export default function App() {
     localStorage.setItem('bd_site_config_v1', JSON.stringify(updatedConfig));
 
     let success = false;
-    try {
-      // 1. Direct Firebase Firestore writeBatch operation (Instant live sync for Vercel & local development)
-      if (clientDb) {
-        const batch = writeBatch(clientDb);
-        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-        batch.set(docRef, updatedConfig);
-        await batch.commit();
-        console.log("⚡ Bulk products updated successfully via Firestore writeBatch!");
-        success = true;
-      }
-    } catch (dbErr) {
-      console.error('Error saving bulk products in batch:', dbErr);
-      try {
-        handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
-      } catch (formattedErr) {
-        console.error("Formatted WRITE error on batch update:", formattedErr);
-      }
-    }
+    let finalConfig = updatedConfig;
 
     try {
-      // 2. Fallback REST API save for Node/container backup
+      // 1. Try to save using REST API first, which cleans up and migrates any huge base64 images on the server side!
+      // Add an 8-second timeout to prevent the POST request from hanging if payload is too big or connection is slow
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const res = await fetch('/api/site-config', {
         method: 'POST',
         headers: {
@@ -482,12 +485,41 @@ export default function App() {
           'Expires': '0'
         },
         body: JSON.stringify({ config: updatedConfig }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
-        success = true;
+        const data = await res.json();
+        if (data && data.success && data.config) {
+          finalConfig = data.config;
+          setSiteConfig(finalConfig);
+          localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
+          success = true;
+          console.log("⚡ Bulk products updated successfully via REST API!");
+        }
       }
     } catch (err) {
-      console.warn('REST save error (expected on serverless):', err);
+      console.warn('REST save error or timeout:', err);
+    }
+
+    // 2. Fallback to direct client-side Firestore write ONLY if REST API fails (or client is running purely client-side)
+    if (!success && clientDb) {
+      try {
+        const batch = writeBatch(clientDb);
+        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
+        batch.set(docRef, finalConfig);
+        await batch.commit();
+        console.log("⚡ Bulk products updated successfully via Firestore writeBatch fallback!");
+        success = true;
+      } catch (dbErr) {
+        console.error('Error saving bulk products in batch fallback:', dbErr);
+        try {
+          handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
+        } catch (formattedErr) {
+          console.error("Formatted WRITE error on batch update fallback:", formattedErr);
+        }
+      }
     }
 
     if (success) {
