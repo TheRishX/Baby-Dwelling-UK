@@ -43,13 +43,13 @@ const DEFAULT_CONFIG = {
       id: 'carriers', 
       name: 'Carriers', 
       subtitle: '0 - 48 Months', 
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBWWBd9xbi8sJ5zXUsdnBU50R5cZsKdjtPfYS8XGrhpvAlmIfe_54yIAXb7Z1Lg2sLgJvhv4P38lIKKowcVNm6PB_mbbD8PW4V5mPO8GC9dZLW4QkTy3byFsWKrcDB1nRtSM88KtVaN7kY1bllFvNB-QpE7b4WhlH-iB_hVwPQZTMkr2pMcrNUaUZ2b8_Vvfw5tEtq4PYrh6gx65y1gkj_nZEafninbKvKgG2cimlRhCLhfj5Aos55aT37UpVCJ-cCuGVuCYzBZRSM' 
+      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat1_k3davh.avif' 
     },
     { 
       id: 'pouches', 
       name: 'Pouches', 
       subtitle: '0 - 12 Months', 
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAO7QnYkRNpbxSypcRESvTyvVK4rFPqh9BT3mC3WChvyHSPlYNY0lqGM9hw-G9WktZRmzqyViVoDKW_NDs7rripCZrfhMsUzaEbXYTgyiThPnW3oL-M5hCS3Inj5VCJNOYRjmDFOw2HAhQXmLUzql1TfhQVuL8qjKc467NBrfEqwrJ6SAXPWvvP6DT3pNSO6f5JInnzJTnjH6CW3e7hBzEhP08J8-wPRoIR4kkQZa_WhFFYs52ReUzoSPoFcuYWn3sneqwG-dRo8BE' 
+      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat2_k3davh.avif' 
     },
     { 
       id: 'combos', 
