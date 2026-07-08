@@ -202,6 +202,12 @@ export default function App() {
 
   const isInitialMount = useRef(true);
   const previousConfigRef = useRef(JSON.stringify(siteConfig));
+  const isConfigDirtyRef = useRef(false);
+
+  const handleUserConfigChange = (newConfig: any) => {
+    isConfigDirtyRef.current = true;
+    setSiteConfig(newConfig);
+  };
 
   // Admin Session Login State
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
@@ -420,6 +426,7 @@ export default function App() {
     }
 
     if (success) {
+      isConfigDirtyRef.current = false;
       setSyncState('saved');
       setTimeout(() => setSyncState('idle'), 2500);
     } else {
@@ -436,6 +443,12 @@ export default function App() {
     }
 
     if (!isCustomizingMode && activeView !== 'admin') {
+      previousConfigRef.current = JSON.stringify(siteConfig);
+      return;
+    }
+
+    // Only auto-save if the user has actually made an edit (isConfigDirtyRef is true)
+    if (!isConfigDirtyRef.current) {
       previousConfigRef.current = JSON.stringify(siteConfig);
       return;
     }
@@ -531,6 +544,7 @@ export default function App() {
     }
 
     if (success) {
+      isConfigDirtyRef.current = false;
       setSyncState('saved');
       setTimeout(() => setSyncState('idle'), 2500);
       triggerToast('✨ Bulk prices and availability updated successfully!');
@@ -543,6 +557,7 @@ export default function App() {
 
   const handleResetConfig = () => {
     if (window.confirm('Are you sure you want to reset all site configuration to default values? Any unsaved edits will be lost.')) {
+      isConfigDirtyRef.current = true;
       setSiteConfig(DEFAULT_CONFIG);
       localStorage.setItem('bd_site_config_v1', JSON.stringify(DEFAULT_CONFIG));
       saveConfigToBackend(DEFAULT_CONFIG);
@@ -634,7 +649,7 @@ export default function App() {
         <div className="w-[380px] md:w-[400px] h-full flex-shrink-0 z-20 flex flex-col overflow-hidden">
           <ShopifyCustomizer
             siteConfig={siteConfig}
-            onChangeConfig={setSiteConfig}
+            onChangeConfig={handleUserConfigChange}
             onSave={handleSaveConfig}
             onReset={handleResetConfig}
             onClose={() => setIsCustomizingMode(false)}
@@ -744,7 +759,7 @@ export default function App() {
                         onAddToCart={handleAddToCart}
                         siteConfig={siteConfig}
                         onUpdateConfig={(updated) => {
-                          setSiteConfig(updated);
+                          handleUserConfigChange(updated);
                           localStorage.setItem('bd_site_config_v1', JSON.stringify(updated));
                         }}
                       />
@@ -893,7 +908,7 @@ export default function App() {
                 onAddToCart={handleAddToCart}
                 siteConfig={siteConfig}
                 onUpdateConfig={(updated) => {
-                  setSiteConfig(updated);
+                  handleUserConfigChange(updated);
                   localStorage.setItem('bd_site_config_v1', JSON.stringify(updated));
                 }}
               />
@@ -952,7 +967,7 @@ export default function App() {
               >
                 <AdminView
                   siteConfig={siteConfig}
-                  setSiteConfig={setSiteConfig}
+                  setSiteConfig={handleUserConfigChange}
                   onNavigateHome={() => setActiveView('home')}
                   onNavigateToView={(view, subTarget) => {
                     setActiveView(view);
