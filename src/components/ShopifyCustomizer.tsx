@@ -22,7 +22,8 @@ import {
   Settings,
   ChevronRight,
   Info,
-  Check
+  Check,
+  Image
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ActiveView, Product } from '../types';
@@ -250,6 +251,12 @@ export default function ShopifyCustomizer({
       title: 'Checkout Redirection',
       icon: <FileText size={16} />,
       keywords: ['checkout', 'redirection', 'amazon', 'walmart', 'button text'],
+    },
+    {
+      id: 'image-cdn',
+      title: 'Image CDN & Optimization',
+      icon: <Image size={16} />,
+      keywords: ['image', 'cdn', 'optimization', 'cloudinary', 'imgix', 'proxy', 'wsrv', 'webp', 'cache'],
     }
   ];
 
@@ -1284,6 +1291,131 @@ export default function ShopifyCustomizer({
                   />
                 </div>
               )}
+            </SidebarAccordion>
+          )}
+
+          {/* SECTION: IMAGE CDN & OPTIMIZATION */}
+          {filteredSections.some(s => s.id === 'image-cdn') && (
+            <SidebarAccordion
+              id="image-cdn"
+              title="Image CDN & Optimization"
+              isOpen={isSectionOpen('image-cdn')}
+              onToggle={() => toggleSection('image-cdn')}
+              icon={<Image size={14} />}
+            >
+              <div className="flex flex-col gap-4 animate-fadeIn">
+                <div className="bg-[#EBF5F1] dark:bg-[#0E291F] p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/50 flex flex-col gap-1 text-left">
+                  <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <Check size={12} className="stroke-[3]" /> Speed & Performance Booster
+                  </span>
+                  <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-normal">
+                    This section configures global cloud-based image CDNs & optimization proxies. Images are automatically compressed, resized, converted to lightweight WebP, and cached globally on edge servers for instantaneous loading speeds.
+                  </p>
+                </div>
+
+                {/* CDN Mode Selector */}
+                <div className="flex flex-col gap-1.5 w-full text-left">
+                  <label htmlFor="imgCdnMode" className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                    Cloud CDN Engine Mode
+                  </label>
+                  <select
+                    id="imgCdnMode"
+                    value={siteConfig.imgCdnMode ?? 'wsrv'}
+                    onChange={(e) => handleFieldChange('imgCdnMode', e.target.value)}
+                    className="w-full border border-gray-200 dark:border-gray-800 rounded-lg p-2.5 text-xs outline-none bg-white dark:bg-black font-semibold text-gray-800 dark:text-gray-200 focus:border-[#008060] focus:ring-1 focus:ring-[#008060]/20 transition-all cursor-pointer"
+                  >
+                    <option value="wsrv">wsrv.nl Proxy (Free, Global Cloudflare CDN, Zero-Config)</option>
+                    <option value="cloudinary">Cloudinary Fetch API (Enterprise Transforms)</option>
+                    <option value="imgix">Imgix CDN Proxy (Custom Domain Transformation)</option>
+                    <option value="none">Direct Access / Disabled (No CDN Proxy)</option>
+                  </select>
+                </div>
+
+                {/* Conditional Fields based on selected Mode */}
+                {siteConfig.imgCdnMode === 'cloudinary' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col gap-4 animate-fadeIn text-left"
+                  >
+                    <SettingInput
+                      id="cloudinaryCloudName"
+                      label="Cloudinary Cloud Name"
+                      value={siteConfig.cloudinaryCloudName ?? ''}
+                      onChange={(val) => handleFieldChange('cloudinaryCloudName', val)}
+                      placeholder="e.g. baby-dwelling-usa"
+                      helpText="Your Cloudinary account cloud name. Sign up at cloudinary.com for a free account. Uses Cloudinary's dynamic asset Fetch API."
+                    />
+                  </motion.div>
+                )}
+
+                {siteConfig.imgCdnMode === 'imgix' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col gap-4 animate-fadeIn text-left"
+                  >
+                    <SettingInput
+                      id="imgixDomain"
+                      label="Imgix Web Proxy Domain"
+                      value={siteConfig.imgixDomain ?? ''}
+                      onChange={(val) => handleFieldChange('imgixDomain', val)}
+                      placeholder="e.g. baby-dwelling.imgix.net"
+                      helpText="The custom Imgix source domain connected to your external asset storage or web proxy host."
+                    />
+                  </motion.div>
+                )}
+
+                {siteConfig.imgCdnMode !== 'none' && (
+                  <>
+                    {/* Compression Quality */}
+                    <div className="flex flex-col gap-2 bg-white dark:bg-[#1E1E1F] border border-gray-150 dark:border-gray-800 p-3.5 rounded-xl shadow-sm text-left">
+                      <div className="flex justify-between items-center">
+                        <label htmlFor="imgQuality" className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide select-none">
+                          Image Quality Compression
+                        </label>
+                        <span className="text-xs font-mono font-bold text-[#008060]">
+                          {siteConfig.imgQuality ?? 82}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-gray-400 font-bold font-mono">10%</span>
+                        <input
+                          id="imgQuality"
+                          type="range"
+                          min="10"
+                          max="100"
+                          value={siteConfig.imgQuality ?? 82}
+                          onChange={(e) => handleFieldChange('imgQuality', parseInt(e.target.value))}
+                          className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#008060]"
+                        />
+                        <span className="text-[10px] text-gray-400 font-bold font-mono">100%</span>
+                      </div>
+                      <span className="text-[9px] text-gray-400 dark:text-gray-500 leading-normal block mt-1">
+                        Lower quality values drastically reduce file size (down to 15KB per listing thumbnail) and speed up mobile page load times.
+                      </span>
+                    </div>
+
+                    {/* Auto WebP Conversion */}
+                    <CustomSwitch
+                      id="imgAutoWebp"
+                      label="Auto-Convert to WebP Format"
+                      checked={siteConfig.imgAutoWebp !== false}
+                      onChange={(checked) => handleFieldChange('imgAutoWebp', checked)}
+                      description="Automatically convert PNG, JPEGs, and heavy images to WebP format on-the-fly, reducing sizes by up to 80%."
+                    />
+                  </>
+                )}
+
+                {/* Global Lazy Loading */}
+                <CustomSwitch
+                  id="imgLazyLoad"
+                  label="Global Image Lazy Loading"
+                  checked={siteConfig.imgLazyLoad !== false}
+                  onChange={(checked) => handleFieldChange('imgLazyLoad', checked)}
+                  description="Defers loading off-screen imagery until parents scroll near them. Keeps initial page weight light as air."
+                />
+              </div>
             </SidebarAccordion>
           )}
 

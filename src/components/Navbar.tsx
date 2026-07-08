@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, ShoppingBag, Lock, LogOut, Settings, User } from 'lucide-react';
 import { ActiveView, CartItem } from '../types';
+import OptimizedImage from './customizer/OptimizedImage';
 
 interface NavbarProps {
   activeView: ActiveView;
@@ -140,9 +141,10 @@ export default function Navbar({
               className="font-serif text-xl md:text-2xl font-bold tracking-tight text-charcoal transition-all hover:opacity-90 cursor-pointer flex items-center"
             >
               {siteConfig.logoImage ? (
-                <img 
+                <OptimizedImage 
                   src={siteConfig.logoImage} 
                   alt={siteConfig.logoText || 'Baby Dwelling'} 
+                  height={120}
                   className={`h-8 md:h-10 object-contain transition-all ${
                     siteConfig.logoBg === 'beige'
                       ? 'bg-light-beige p-1 rounded-lg'
@@ -153,7 +155,6 @@ export default function Navbar({
                     height: siteConfig.headerLogoHeight ? `${siteConfig.headerLogoHeight}px` : undefined,
                     maxHeight: siteConfig.headerLogoHeight ? `${siteConfig.headerLogoHeight}px` : undefined,
                   }}
-                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <span>{siteConfig.logoText || 'Baby Dwelling'}</span>

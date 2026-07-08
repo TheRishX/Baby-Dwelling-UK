@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, AlertCircle, Info, ShieldCheck } from 'lucide-react';
+import OptimizedImage from './customizer/OptimizedImage';
 
 export default function ErgonomicVisualizer() {
   const [activeTab, setActiveTab] = useState<'correct' | 'incorrect'>('correct');
@@ -119,10 +120,10 @@ export default function ErgonomicVisualizer() {
 
         {/* Posture Schematic Block */}
         <div className="relative aspect-video rounded-xl bg-warm-white dark:bg-charcoal border border-sand/15 overflow-hidden flex items-center justify-center p-4 shadow-sm">
-          <img
+          <OptimizedImage
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYgJvLuf0Zt1qB223y7Fe29M7UVopEQBrX5A61jrHnarvmG5pE7sIdh8WGCSDyZk7cwW_btP6uvLH2FOzTNaJKGOX6VcWm1FUI--gVXSylk0VtIt3pk40ap2fLbhdwA25hXgQVyp_3cqM2UGG1KurtF8rWTRGwLBt9Tvml6Yr6aJorH_Yi8iGu4jNA8RkiL_irDOsIwNyHrlpOhH93LObOdB24gLGzVZdsop8of4E9l2YBNMq1_Ocdaj7uww4ywAn7FSBEV-ZqXMI"
             alt="Hip position"
-            referrerPolicy="no-referrer"
+            width={800}
             className={`w-full h-full object-cover transition-all duration-500 rounded-lg ${
               activeTab === 'incorrect' ? 'grayscale brightness-75 contrast-125 saturate-50' : 'brightness-100 contrast-100'
             }`}

@@ -1,5 +1,6 @@
 import { ActiveView } from '../types';
 import { Instagram, Facebook, Pin } from 'lucide-react';
+import OptimizedImage from './customizer/OptimizedImage';
 
 interface FooterProps {
   setActiveView: (view: ActiveView) => void;
@@ -69,9 +70,10 @@ export default function Footer({
           <div className="md:col-span-2">
             <div className="mb-4">
               {siteConfig.logoImage ? (
-                <img 
+                <OptimizedImage 
                   src={siteConfig.logoImage} 
                   alt={siteConfig.logoText || 'Baby Dwelling'} 
+                  height={120}
                   className={`h-8 object-contain transition-all ${
                     siteConfig.logoBg === 'beige'
                       ? 'bg-light-beige p-1 rounded-lg'
@@ -82,7 +84,6 @@ export default function Footer({
                     height: siteConfig.footerLogoHeight ? `${siteConfig.footerLogoHeight}px` : undefined,
                     maxHeight: siteConfig.footerLogoHeight ? `${siteConfig.footerLogoHeight}px` : undefined,
                   }}
-                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <h3 className="font-serif text-2xl font-bold text-charcoal">{siteConfig.logoText || 'Baby Dwelling'}</h3>

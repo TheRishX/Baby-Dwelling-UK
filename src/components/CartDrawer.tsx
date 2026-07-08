@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Plus, Minus, ShieldCheck, ShoppingBag, Truck, ExternalLink } from 'lucide-react';
 import { CartItem } from '../types';
+import OptimizedImage from './customizer/OptimizedImage';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -99,10 +100,10 @@ export default function CartDrawer({
                     className="flex gap-4 p-4 rounded-xl bg-light-beige/25 dark:bg-white/5 border border-sand/10 dark:border-white/5 shadow-[0_4px_12px_rgb(0,0,0,0.01)]"
                   >
                     {/* Product Thumbnail */}
-                    <img
+                    <OptimizedImage
                       src={item.product.image}
                       alt={item.product.title}
-                      referrerPolicy="no-referrer"
+                      width={160}
                       className="w-20 h-20 rounded-lg object-cover bg-sand/10"
                     />
 

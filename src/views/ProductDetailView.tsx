@@ -4,6 +4,9 @@ import { Star, ShieldCheck, Heart, ArrowUpRight, Scale, Baby, Leaf, Compass, Scr
 import { Product } from '../types';
 import ErgonomicVisualizer from '../components/ErgonomicVisualizer';
 import ReviewSection from '../components/ReviewSection';
+import OptimizedImage from '../components/customizer/OptimizedImage';
+
+const MotionOptimizedImage = motion.create(OptimizedImage);
 
 interface ProductDetailViewProps {
   productId?: string;
@@ -77,11 +80,11 @@ export default function ProductDetailView({ productId = 'signature-heritage', on
         <div className="lg:col-span-7 flex flex-col gap-4">
           <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-light-beige/35 border border-sand/20 shadow-sm">
             <AnimatePresence mode="wait">
-              <motion.img
+              <MotionOptimizedImage
                 key={`${product.id}-${activeImageIndex}`}
                 src={galleryImages[activeImageIndex] || product.image}
                 alt="Main Product Gallery Frame"
-                referrerPolicy="no-referrer"
+                width={1000}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -110,7 +113,7 @@ export default function ProductDetailView({ productId = 'signature-heritage', on
                       : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Gallery Thumb ${i + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  <OptimizedImage src={img} alt={`Gallery Thumb ${i + 1}`} width={150} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

@@ -407,7 +407,7 @@ export default function SeoView({ siteConfig, onNavigateToView, setCurrentPageSl
                     className="p-4 rounded-2xl border border-sand/15 bg-light-beige/10 hover:bg-light-beige/25 transition-all flex gap-4"
                   >
                     <img
-                      src={product.image}
+                      src={product.image || undefined}
                       alt={product.title}
                       referrerPolicy="no-referrer"
                       className="w-16 h-16 rounded-xl object-cover border border-sand/20 bg-white shadow-sm"

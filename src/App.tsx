@@ -165,6 +165,14 @@ const DEFAULT_CONFIG = {
   amazonCheckoutText: 'Checkout using Amazon',
   enableWalmartCheckout: true,
   walmartCheckoutText: 'Checkout using Wal-Mart',
+  
+  // Image CDN & Optimization Settings
+  imgCdnMode: 'wsrv', // 'wsrv' | 'cloudinary' | 'imgix' | 'none'
+  cloudinaryCloudName: '',
+  imgixDomain: '',
+  imgQuality: 82,
+  imgAutoWebp: true,
+  imgLazyLoad: true,
 };
 
 export default function App() {

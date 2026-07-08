@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles, ShieldCheck, HeartHandshake, Eye } from 'lucide-react';
 import ZenBackground from '../components/ZenBackground';
+import OptimizedImage from '../components/customizer/OptimizedImage';
 
 interface HomeViewProps {
   onNavigateToShop: (category?: string) => void;
@@ -64,10 +65,10 @@ export default function HomeView({ onNavigateToShop, onNavigateToDetail, siteCon
         {/* Cinematic Flowing Silk Canvas Background inside the Hero */}
         <div className="absolute inset-0 z-0">
           <ZenBackground />
-          <img
+          <OptimizedImage
             src={siteConfig.heroImage}
             alt="Parenthood bond carrier"
-            referrerPolicy="no-referrer"
+            width={1600}
             className="w-full h-full object-cover object-top opacity-[0.92] pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-warm-white/10 to-warm-white/40" />
@@ -197,10 +198,10 @@ export default function HomeView({ onNavigateToShop, onNavigateToDetail, siteCon
                 className="group block relative overflow-hidden rounded-3xl aspect-[3/4] bg-light-beige/35 border border-sand/20 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300"
               >
                 {cat.image ? (
-                  <img
+                  <OptimizedImage
                     src={cat.image}
                     alt={cat.name}
-                    referrerPolicy="no-referrer"
+                    width={500}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (

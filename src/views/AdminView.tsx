@@ -1004,7 +1004,7 @@ export default function AdminView({
                 <div className="p-4 bg-gray-50 rounded-xl border border-[#E1E3E5] flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                     <img 
-                      src={siteConfig.signatureProduct.image} 
+                      src={siteConfig.signatureProduct.image || undefined} 
                       alt="Signature Product" 
                       referrerPolicy="no-referrer"
                       className="w-16 h-20 object-cover rounded-lg border bg-white" 
@@ -1661,7 +1661,7 @@ export default function AdminView({
                       <tr key={prod.id} className="border-b border-[#E1E3E5] hover:bg-gray-50 transition-colors">
                         <td className="p-4">
                           <img 
-                            src={prod.image} 
+                            src={prod.image || undefined} 
                             alt={prod.title} 
                             referrerPolicy="no-referrer"
                             className="w-10 h-12 object-cover rounded-md border bg-light-beige/45" 
@@ -1750,7 +1750,7 @@ export default function AdminView({
                           <tr key={prod.id} className="border-b border-[#E1E3E5] hover:bg-gray-50 transition-colors">
                             <td className="p-4">
                               <img 
-                                src={prod.image} 
+                                src={prod.image || undefined} 
                                 alt={prod.title} 
                                 referrerPolicy="no-referrer"
                                 className="w-10 h-12 object-cover rounded-md border bg-light-beige/45" 

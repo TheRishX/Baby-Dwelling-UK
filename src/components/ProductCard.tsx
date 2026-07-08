@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Star, Heart, ArrowUpRight } from 'lucide-react';
 import { Product } from '../types';
 import { useState } from 'react';
+import OptimizedImage from './customizer/OptimizedImage';
 
 interface ProductCardProps {
   product: Product;
@@ -55,10 +56,10 @@ export default function ProductCard({ product, onViewDetails, onAddToCart }: Pro
         className="relative aspect-[3/4] overflow-hidden bg-light-beige/35 dark:bg-white/5 cursor-pointer"
         onClick={onViewDetails}
       >
-        <img
+        <OptimizedImage
           src={product.image}
           alt={product.title}
-          referrerPolicy="no-referrer"
+          width={450}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         
