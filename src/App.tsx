@@ -46,7 +46,7 @@ const DEFAULT_CONFIG = {
       image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat1_k3davh.avif' 
     },
     { 
-      id: 'pouches', 
+      id: 'pouchesX', 
       name: 'Pouches', 
       subtitle: '0 - 12 Months', 
       image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat2_k3davh.avif' 
