@@ -33,6 +33,12 @@ import { Product, Review } from '../types';
 import WysiwygEditor from '../components/WysiwygEditor';
 import SeoView from './SeoView';
 import { compressImage } from '../utils/image';
+import {
+  initAuth,
+  googleSignIn,
+  logout as googleLogout,
+  createAndSeedGoogleSheet
+} from '../services/googleSheets';
 
 interface AdminViewProps {
   siteConfig: any;
@@ -60,6 +66,27 @@ export default function AdminView({
   const [activeTab, setActiveTab] = useState<'dashboard' | 'homepage' | 'products' | 'categories' | 'pages' | 'navigation' | 'reviews' | 'seo' | 'google_sheets'>('dashboard');
   const [productsSubTab, setProductsSubTab] = useState<'standard' | 'bulk'>('standard');
   const [bulkProducts, setBulkProducts] = useState<Product[]>([]);
+
+  const [googleUser, setGoogleUser] = useState<any>(null);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [isAuthInitializing, setIsAuthInitializing] = useState(true);
+  const [isProvisioning, setIsProvisioning] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (user, token) => {
+        setGoogleUser(user);
+        setGoogleToken(token);
+        setIsAuthInitializing(false);
+      },
+      () => {
+        setGoogleUser(null);
+        setGoogleToken(null);
+        setIsAuthInitializing(false);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (siteConfig && siteConfig.products) {
@@ -2419,6 +2446,93 @@ export default function AdminView({
                   </p>
                 </div>
               </div>
+
+              {/* Automatic Provisioning Database Panel */}
+              {!googleUser ? (
+                <div className="bg-[#FAF9F5] p-6 rounded-2xl border border-sand/40 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="max-w-md">
+                    <h4 className="text-sm font-semibold text-charcoal flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                      One-Click Google Sheets Integration
+                    </h4>
+                    <p className="text-xs text-charcoal/60 mt-1.5 leading-relaxed">
+                      Instead of manual sheet creation and tab mapping, authenticate your Google session to instantly provision and link a perfectly formatted storefront database template automatically!
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await googleSignIn();
+                        triggerToast("🔒 Authorized successfully with Google Workspace!");
+                      } catch (err: any) {
+                        alert("Authorization failed: " + err.message);
+                      }
+                    }}
+                    className="px-5 py-3.5 bg-[#008060] hover:bg-[#006e52] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-2"
+                  >
+                    Authorize Google Session
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="max-w-md">
+                    <div className="flex items-center gap-2">
+                      {googleUser.photoURL ? (
+                        <img src={googleUser.photoURL} alt={googleUser.displayName} className="w-5 h-5 rounded-full" referrerPolicy="no-referrer" />
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-[#008060] text-white text-[10px] flex items-center justify-center font-bold">
+                          G
+                        </span>
+                      )}
+                      <h4 className="text-sm font-semibold text-emerald-800">
+                        Connected as {googleUser.displayName || googleUser.email || "Google Workspace Account"}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-emerald-700 mt-1.5 leading-relaxed">
+                      You're authenticated. Click below to instantly create, format, seed, and connect a brand new Google Sheet database on your Google Drive automatically!
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={isProvisioning}
+                      onClick={async () => {
+                        setIsProvisioning(true);
+                        try {
+                          triggerToast("⚡ Provisioning your Google Sheet database...");
+                          const sheetId = await createAndSeedGoogleSheet(siteConfig, googleToken);
+                          if (sheetId) {
+                            const updatedConfig = { ...siteConfig, googleSheetId: sheetId };
+                            setSiteConfig(updatedConfig);
+                            onSave();
+                            triggerToast("🎉 Google Sheet database provisioned and connected!");
+                            // Sync input value
+                            const input = document.getElementById('googleSheetIdInput') as HTMLInputElement;
+                            if (input) input.value = sheetId;
+                          } else {
+                            alert("Failed to provision spreadsheet template.");
+                          }
+                        } catch (err: any) {
+                          alert("Database provisioning error: " + err.message);
+                        } finally {
+                          setIsProvisioning(false);
+                        }
+                      }}
+                      className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0"
+                    >
+                      {isProvisioning ? "Provisioning Database..." : "⚡ Auto-Create & Connect Sheet"}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await googleLogout();
+                        triggerToast("🔌 Logged out of Google session.");
+                      }}
+                      className="px-4 py-3.5 border border-gray-200 text-gray-500 hover:bg-gray-100 text-xs font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Sheet ID Input Panel */}
               <div className="flex flex-col gap-4">

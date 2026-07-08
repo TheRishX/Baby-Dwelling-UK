@@ -13,6 +13,7 @@ import ShopifyCustomizer from './components/ShopifyCustomizer';
 import { products as initialProducts, signatureProduct as initialSignatureProduct, reviewsData as initialReviews } from './data';
 import { Settings, Palette } from 'lucide-react';
 import SeoView from './views/SeoView';
+import { initAuth } from './services/googleSheets';
 
 const DEFAULT_CONFIG = {
   logoText: 'Baby Dwelling',
@@ -123,6 +124,21 @@ export default function App() {
   const [currentPageSlug, setCurrentPageSlug] = useState<string>('about-us');
   const [selectedProductId, setSelectedProductId] = useState<string>('signature-heritage');
 
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (user, token) => {
+        setGoogleToken(token);
+      },
+      () => {
+        setGoogleToken(null);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
   // Secure admin passcode auth states
   const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
   const [passcodeAttempt, setPasscodeAttempt] = useState('');
@@ -199,6 +215,8 @@ export default function App() {
         }
       } catch (err) {
         console.warn('REST config fetch error:', err);
+      } finally {
+        setIsInitialLoading(false);
       }
     };
 
@@ -215,29 +233,6 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [isCustomizingMode, activeView]);
-
-  const executeWithRetry = async <T,>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    initialDelayMs: number = 1000
-  ): Promise<T> => {
-    let attempt = 0;
-    while (true) {
-      try {
-        return await operation();
-      } catch (error) {
-        attempt++;
-        if (attempt >= maxRetries) {
-          console.error(`❌ Maximum retries (${maxRetries}) reached. Operation failed:`, error);
-          throw error;
-        }
-        // Calculate exponential backoff delay with some random jitter (up to 200ms)
-        const backoffDelay = initialDelayMs * Math.pow(2, attempt) + Math.random() * 200;
-        console.warn(`⚠️ Firestore write failed (attempt ${attempt}/${maxRetries}). Retrying in ${Math.round(backoffDelay)}ms...`, error);
-        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
-      }
-    }
-  };
 
   // Enqueue a configuration to be saved
   const triggerSaveConfig = (newConfig: any) => {
@@ -304,14 +299,19 @@ export default function App() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
+        const requestHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        };
+        if (googleToken) {
+          requestHeaders['Authorization'] = `Bearer ${googleToken}`;
+        }
+
         const res = await fetch('/api/site-config', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
+          headers: requestHeaders,
           body: JSON.stringify({ config: validatedPayload }),
           signal: controller.signal
         });
@@ -511,6 +511,61 @@ export default function App() {
     setActiveView('detail');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="fixed inset-0 bg-[#F9F6F0] flex flex-col items-center justify-center z-[9999] font-sans">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center max-w-md text-center p-8 rounded-3xl"
+        >
+          {/* Brand Logo/Header */}
+          <div className="mb-8">
+            <span className="font-sans text-[11px] font-bold text-terracotta tracking-widest uppercase block mb-2">
+              Baby Dwelling USA
+            </span>
+            <h1 className="font-serif text-3xl font-semibold text-charcoal tracking-tight">
+              Organic Comfort
+            </h1>
+          </div>
+
+          {/* Premium Looping Circular Spinner */}
+          <div className="relative w-16 h-16 mb-8 flex items-center justify-center">
+            {/* Ambient outer ring pulsing */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-2 border-sand/10"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            />
+            {/* Spinning gradient ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-t-2 border-r-2 border-terracotta"
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            />
+            <span className="text-xs text-terracotta font-serif">BD</span>
+          </div>
+
+          {/* Pulsing loading subtitle */}
+          <motion.p
+            className="text-xs text-charcoal/60 font-medium tracking-wide animate-pulse"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          >
+            Synchronizing Storefront with Google Sheets...
+          </motion.p>
+          
+          <div className="mt-6 flex gap-2 items-center text-[10px] text-[#A69F95] font-mono bg-[#EFECE6] px-3 py-1 rounded-full">
+            <span>🔌 headless-cms v2.0</span>
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+            <span>sheets-connected</span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isCustomizingMode) {
     return (

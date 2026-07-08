@@ -458,6 +458,95 @@ async function saveConfig(config: any) {
   }
 }
 
+// Write entire configuration back to Google Sheets database via Sheets API v4
+async function saveConfigToGoogleSheetsOnServer(spreadsheetId: string, config: any, token: string) {
+  const batchPayload = {
+    valueInputOption: "USER_ENTERED",
+    data: [
+      {
+        range: "GlobalConfig!A1:B100",
+        values: [
+          ["Key", "Value"],
+          ...[
+            'logoText', 'logoImage', 'bannerText', 'showPromoBanner',
+            'heroTitle', 'heroSubtitle', 'heroImage', 'aboutTitle',
+            'aboutText', 'aboutImage', 'showInstaFeed', 'instagramUrl',
+            'footerAbout', 'footerEmail', 'footerPhone', 'footerAddress',
+            'enableAmazonCheckout', 'amazonCheckoutText', 'enableWalmartCheckout',
+            'walmartCheckoutText', 'imgCdnMode', 'imgQuality', 'imgAutoWebp',
+            'imgLazyLoad', 'googleSheetId'
+          ].map(k => [k, String(config[k] !== undefined ? config[k] : "")])
+        ]
+      },
+      {
+        range: "Products!A1:Z100",
+        values: [
+          ["id", "title", "price", "originalPrice", "rating", "reviewsCount", "image", "images", "category", "badge", "tagline", "description", "retailer", "buyUrl", "colors", "specs", "inStock"],
+          ...(config.products || []).map((p: any) => [
+            p.id || "",
+            p.title || "",
+            String(p.price || 0),
+            String(p.originalPrice !== undefined && p.originalPrice !== null ? p.originalPrice : ""),
+            String(p.rating || 5),
+            String(p.reviewsCount || 0),
+            p.image || "",
+            Array.isArray(p.images) ? p.images.join(",") : "",
+            p.category || "",
+            p.badge || "",
+            p.tagline || "",
+            p.description || "",
+            p.retailer || "",
+            p.buyUrl || "",
+            Array.isArray(p.colors) ? p.colors.join(",") : "",
+            p.specs ? Object.entries(p.specs).map(([k, v]) => `${k}:${v}`).join(";") : "",
+            p.inStock !== false ? "true" : "false"
+          ])
+        ]
+      },
+      {
+        range: "Reviews!A1:G100",
+        values: [
+          ["id", "name", "rating", "comment", "babyAge", "verified", "date"],
+          ...(config.reviews || []).map((r: any) => [
+            r.id || "",
+            r.name || "",
+            String(r.rating || 5),
+            r.comment || "",
+            r.babyAge || "",
+            r.verified !== false ? "true" : "false",
+            r.date || ""
+          ])
+        ]
+      },
+      {
+        range: "Categories!A1:C100",
+        values: [
+          ["id", "name", "image"],
+          ...(config.categories || []).map((c: any) => [
+            c.id || "",
+            c.name || "",
+            c.image || ""
+          ])
+        ]
+      }
+    ]
+  };
+
+  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(batchPayload)
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to update Google Sheet: ${errText}`);
+  }
+}
+
 // Helper to upload images online to catbox.moe anonymously
 async function uploadToCatbox(base64Data: string, fileName = "image.jpg"): Promise<string> {
   // Extract pure base64 data and mime type
@@ -558,9 +647,24 @@ async function startServer() {
     res.setHeader("Surrogate-Control", "no-store");
 
     const { config } = req.body;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
     if (config) {
       try {
         await saveConfig(config);
+
+        // If sheet is connected and we have a token, write back to Google Sheets server-side
+        if (config.googleSheetId && token) {
+          console.log(`[Google Sheets Server Sync] Writing back updates to sheet: ${config.googleSheetId}`);
+          try {
+            await saveConfigToGoogleSheetsOnServer(config.googleSheetId, config, token);
+            console.log("[Google Sheets Server Sync] Write complete.");
+          } catch (sheetErr: any) {
+            console.error("[Google Sheets Server Sync] Failed to write to sheet:", sheetErr.message);
+          }
+        }
+
         res.json({ success: true, config });
       } catch (err: any) {
         console.error("API Error in /api/site-config POST:", err);
