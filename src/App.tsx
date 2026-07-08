@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
   heroTagline: 'Baby Dwelling USA • Premium Certified Organic Babywearing',
   heroTitle: 'Breathe Easy.<br />Bond Deeply.',
   heroSubtitle: 'Welcome to Baby Dwelling USA. Experience premium ergonomic comfort with our pediatric-approved, certified hip-healthy baby carriers, ring slings, and wraps. Artfully woven from 100% natural organic fabrics.',
-  heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjUGZLXpNyFq8eljDX0MSFwUqLu0nP9QxWQhGuXEjeKOCi36I__npWPkI5my2jneyHJpmFJ0TP6-eg7Qt0Gq7VMb-Cet5YDlJSGVe0Ysx42YRQjOVvrJqqq4niUBZsgAEOM7pDESTwufwBXAM_ukbWo78H5o4lJrMeS2fJSYN9xNCcU5L47rf2w7uydTUMyhi-RiaXM-UbM2bbECDLCP18_2r3D5rbhxJFEnDtKqOYoCJoUq1LohewJ-1TbT91-zK9s1VpWDxtzmo',
+  heroImage: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783527014/IMG_3198_qpnsv4.avif',
   
   badge1Title: 'Ergonomically Certified',
   badge1Text: 'Healthy hip & spine developmental support.',
