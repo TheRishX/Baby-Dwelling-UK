@@ -243,6 +243,7 @@ export default function App() {
 
     const fetchConfigFromServer = async () => {
       let loadedConfig = null;
+      let readAttemptedAndFailed = false;
 
       // 1. Try to fetch directly from Firestore client-side first (extremely fast and robust for Vercel)
       if (clientDb) {
@@ -254,7 +255,8 @@ export default function App() {
             loadedConfig = docSnap.data();
             console.log("⚡ Loaded initial config directly from Firestore on client mount!");
           }
-        } catch (dbErr) {
+        } catch (dbErr: any) {
+          readAttemptedAndFailed = true;
           console.error("Error fetching initial config from Firestore client:", dbErr);
           try {
             handleFirestoreError(dbErr, OperationType.GET, "siteConfigs/baby_dwelling");
@@ -278,9 +280,15 @@ export default function App() {
             const data = await response.json();
             if (data && data.config) {
               loadedConfig = data.config;
+            } else {
+              // If the REST API also had a DB read failure, mark as failed so we don't overwrite DB with defaults
+              readAttemptedAndFailed = true;
             }
+          } else {
+            readAttemptedAndFailed = true;
           }
         } catch (err) {
+          readAttemptedAndFailed = true;
           console.warn('REST config fetch error (expected on serverless Vercel):', err);
         }
       }
@@ -294,7 +302,15 @@ export default function App() {
         const saved = localStorage.getItem('bd_site_config_v1');
         const initialConfig = saved ? JSON.parse(saved) : DEFAULT_CONFIG;
         setSiteConfig(initialConfig);
-        saveConfigToBackend(initialConfig);
+
+        // CRITICAL: Only write to backend if the read succeeded but returned nothing (empty DB).
+        // If the read failed due to permissions/quota/network, DO NOT write to avoid infinite loops and quota exhaust.
+        if (!readAttemptedAndFailed) {
+          console.log("Creating new config in backend since database was empty (not because of read failure)");
+          saveConfigToBackend(initialConfig);
+        } else {
+          console.warn("Read failed; skipping write-back to backend to prevent infinite write/retry loop.");
+        }
       }
     };
 
@@ -317,19 +333,24 @@ export default function App() {
               localStorage.setItem('bd_site_config_v1', JSON.stringify(data));
             }
           }
-        }, (error) => {
+        }, (error: any) => {
           console.error("Firestore listener error, falling back to polling:", error);
           try {
             handleFirestoreError(error, OperationType.GET, "siteConfigs/baby_dwelling");
           } catch (formattedErr) {
             console.error("Formatted onSnapshot listener error:", formattedErr);
           }
-          // Fallback to active polling if listener fails
+
+          // Fallback to active polling if listener fails, with backoff for quota/permission errors
+          const isPermanentOrQuotaError = error?.code === 'permission-denied' || error?.code === 'resource-exhausted' || String(error).includes('Quota');
+          const pollInterval = isPermanentOrQuotaError ? 60000 : 10000; // 60s for permanent/quota errors, 10s otherwise
+          console.warn(`Firestore listener failed. Polling fallback interval set to ${pollInterval}ms.`);
+
           const interval = setInterval(() => {
             if (!isCustomizingMode && activeView !== 'admin') {
               fetchConfigFromServer();
             }
-          }, 3000);
+          }, pollInterval);
           unsubscribe = () => clearInterval(interval);
         });
       } catch (err) {
@@ -341,7 +362,7 @@ export default function App() {
         if (!isCustomizingMode && activeView !== 'admin') {
           fetchConfigFromServer();
         }
-      }, 3000);
+      }, 10000); // 10s for normal polling
       unsubscribe = () => clearInterval(interval);
     }
 
