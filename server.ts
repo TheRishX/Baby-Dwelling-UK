@@ -244,6 +244,7 @@ async function saveConfig(config: any) {
       console.log("Configuration saved to Firestore successfully!");
     } catch (error) {
       console.error("Error saving config to Firestore:", error);
+      throw error; // Propagate the error to the API route handler so the client triggers fallback
     }
   }
 
@@ -352,8 +353,13 @@ async function startServer() {
 
     const { config } = req.body;
     if (config) {
-      await saveConfig(config);
-      res.json({ success: true, config });
+      try {
+        await saveConfig(config);
+        res.json({ success: true, config });
+      } catch (err: any) {
+        console.error("API Error in /api/site-config POST:", err);
+        res.status(500).json({ error: err.message || "Failed to save configuration to database" });
+      }
     } else {
       res.status(400).json({ error: "Missing config object" });
     }

@@ -56,6 +56,7 @@ interface ShopifyCustomizerProps {
   currentPageSlug: string;
   onChangePageSlug: (slug: string) => void;
   syncState?: 'idle' | 'saving' | 'saved' | 'error';
+  isDirty?: boolean;
 }
 
 export default function ShopifyCustomizer({
@@ -71,6 +72,7 @@ export default function ShopifyCustomizer({
   currentPageSlug,
   onChangePageSlug,
   syncState = 'idle',
+  isDirty = false,
 }: ShopifyCustomizerProps) {
   // Navigation tabs for sections that have deep settings
   const [aestheticsTab, setAestheticsTab] = useState<string>('presets');
@@ -303,6 +305,11 @@ export default function ShopifyCustomizer({
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block animate-pulse"></span>
                   <span className="text-red-600 dark:text-red-400">Sync Error</span>
+                </>
+              ) : isDirty ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm animate-pulse"></span>
+                  <span className="text-amber-600 dark:text-amber-400 uppercase tracking-wider">Unsaved Changes *</span>
                 </>
               ) : (
                 <>

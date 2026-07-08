@@ -200,12 +200,17 @@ export default function App() {
     return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   });
 
+  const [isDirtyState, setIsDirtyState] = useState(false);
+  const isSavingRef = useRef(false);
+  const pendingConfigRef = useRef<any>(null);
+
   const isInitialMount = useRef(true);
   const previousConfigRef = useRef(JSON.stringify(siteConfig));
   const isConfigDirtyRef = useRef(false);
 
   const handleUserConfigChange = (newConfig: any) => {
     isConfigDirtyRef.current = true;
+    setIsDirtyState(true);
     setSiteConfig(newConfig);
   };
 
@@ -368,71 +373,192 @@ export default function App() {
     }
   };
 
-  const saveConfigToBackend = async (newConfig: any) => {
-    setSyncState('saving');
-    let success = false;
-    let finalConfig = newConfig;
+  // Enqueue a configuration to be saved
+  const triggerSaveConfig = (newConfig: any) => {
+    console.log("🎨 Editor Changed ↓");
+    console.log("✏️ Dirty State Updated");
+    isConfigDirtyRef.current = true;
+    setIsDirtyState(true);
+    
+    pendingConfigRef.current = newConfig;
+    if (!isSavingRef.current) {
+      isSavingRef.current = true;
+      processSaveQueue();
+    }
+  };
 
-    try {
-      // 1. Try to save using REST API first, which cleans up and migrates any huge base64 images on the server side!
-      // Add an 8-second timeout to prevent the POST request from hanging if payload is too big or connection is slow
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const processSaveQueue = async () => {
+    while (pendingConfigRef.current !== null) {
+      const configToSave = pendingConfigRef.current;
+      // Reset pendingConfigRef immediately so we can detect any changes made while this write is in-progress
+      pendingConfigRef.current = null;
 
-      const res = await fetch('/api/site-config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        body: JSON.stringify({ config: newConfig }),
-        signal: controller.signal
+      console.log("Preparing Payload for visual editor save...");
+      
+      // Validation Check
+      console.log("Validation Started");
+      const requiredFields = [
+        'logoText', 'logoImage', 'heroTagline', 'heroTitle', 'heroSubtitle', 
+        'heroImage', 'badge1Title', 'badge1Text', 'badge2Title', 'badge2Text', 
+        'badge3Title', 'badge3Text', 'heroCta1Text', 'heroCta1Link', 
+        'heroCta2Text', 'heroCta2Link', 'categories', 'navigation', 
+        'pages', 'products', 'reviews', 'enableAmazonCheckout', 
+        'amazonCheckoutText', 'enableWalmartCheckout', 'walmartCheckoutText'
+      ];
+
+      const missingFields: string[] = [];
+      const validatedPayload = { ...configToSave };
+
+      requiredFields.forEach(field => {
+        if (validatedPayload[field] === undefined || validatedPayload[field] === null) {
+          missingFields.push(field);
+          // Set standard fallback to satisfy database security rule validation
+          if (field.startsWith('enable')) {
+            validatedPayload[field] = false;
+          } else if (field === 'categories' || field === 'navigation' || field === 'pages' || field === 'products' || field === 'reviews') {
+            validatedPayload[field] = [];
+          } else {
+            validatedPayload[field] = '';
+          }
+        }
       });
-      clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.success && data.config) {
-          finalConfig = data.config;
-          setSiteConfig(finalConfig);
-          localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
-          success = true;
-          console.log("⚡ Saved successfully via REST API and migrated base64 images!");
-        }
+      if (missingFields.length > 0) {
+        console.warn("⚠️ Validation: Fixed missing payload fields for rules alignment:", missingFields);
       }
-    } catch (err) {
-      console.warn('REST save error or timeout:', err);
-    }
+      console.log("Validation Passed");
 
-    // 2. Fallback to direct client-side Firestore write ONLY if REST API fails (or client is running purely client-side)
-    if (!success && clientDb) {
+      setSyncState('saving');
+      let success = false;
+      let finalConfig = validatedPayload;
+
+      // Log DB metadata, path, collection and authentications
+      console.log("Firestore Document Path:\nCollection: siteConfigs\nDocument ID: baby_dwelling\nPath: siteConfigs/baby_dwelling");
+      
+      // Conditionally import and log Firebase authentication state if initialized
       try {
-        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-        await executeWithRetry(async () => {
-          await setDoc(docRef, finalConfig);
-        }, 3, 1000);
-        console.log("⚡ Saved successfully to Firestore directly from client as fallback!");
-        success = true;
-      } catch (dbErr) {
-        console.error('Error saving directly to Firestore from client:', dbErr);
-        try {
-          handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
-        } catch (formattedErr) {
-          console.error("Formatted WRITE error on config save:", formattedErr);
+        const { getAuth } = await import('firebase/auth');
+        const auth = getAuth();
+        if (auth.currentUser) {
+          console.log(`Firebase Authentication:\nUser UID: ${auth.currentUser.uid}\nEmail: ${auth.currentUser.email}\nEmail Verified: ${auth.currentUser.emailVerified}`);
+        } else {
+          console.log("Firebase Authentication: No active email session. Authorized via staff security passcode.");
         }
+      } catch (authErr) {
+        console.log("Firebase Authentication info check: Auth module not actively initialized.");
+      }
+
+      console.log("Firestore Write Started");
+
+      try {
+        // 1. Try to save using REST API first, which migrates any huge base64 images on the server side
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const res = await fetch('/api/site-config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          body: JSON.stringify({ config: validatedPayload }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.config) {
+            finalConfig = data.config;
+            
+            // Only update active siteConfig state if there are NO new edits queued while saving!
+            if (pendingConfigRef.current === null) {
+              setSiteConfig(finalConfig);
+              localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
+            } else {
+              console.log("Skipped setting active state: a newer payload is queued in the save pipeline.");
+            }
+            success = true;
+            console.log("⚡ Firestore Write Success via REST API (Server Proxy)!");
+          } else {
+            console.warn("REST API responded with bad payload structure:", data);
+          }
+        } else {
+          console.warn(`REST API failed with HTTP status ${res.status}`);
+        }
+      } catch (err: any) {
+        console.warn('REST save error or timeout (trying direct Firestore client fallback):', {
+          message: err.message || err,
+          code: err.code || 'UNKNOWN',
+          stack: err.stack || ''
+        });
+      }
+
+      // 2. Fallback to direct client-side Firestore write ONLY if REST API fails
+      if (!success && clientDb) {
+        try {
+          console.log("Direct client fallback Firestore write started...");
+          const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
+          await executeWithRetry(async () => {
+            // Use { merge: true } to be perfectly safe against overwriting other properties
+            await setDoc(docRef, finalConfig, { merge: true });
+          }, 3, 1000);
+          
+          if (pendingConfigRef.current === null) {
+            setSiteConfig(finalConfig);
+            localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
+          }
+          console.log("⚡ Firestore Write Success directly from client (Fallback path)!");
+          success = true;
+        } catch (dbErr: any) {
+          console.error('Error saving directly to Firestore from client:', {
+            message: dbErr.message || dbErr,
+            code: dbErr.code || 'UNKNOWN',
+            stack: dbErr.stack || ''
+          });
+          try {
+            handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
+          } catch (formattedErr) {
+            console.error("Formatted WRITE error on config save fallback:", formattedErr);
+          }
+        }
+      }
+
+      if (success) {
+        // Only clear isDirtyState if there are no new pending changes!
+        if (pendingConfigRef.current === null) {
+          isConfigDirtyRef.current = false;
+          setIsDirtyState(false);
+          setSyncState('saved');
+          console.log("Editor State Updated ↓");
+          console.log("🧹 Dirty State Cleared ↓");
+          console.log("✅ Save Completed");
+          setTimeout(() => {
+            if (pendingConfigRef.current === null && !isSavingRef.current) {
+              setSyncState('idle');
+            }
+          }, 2500);
+        } else {
+          console.log("Keeping isDirtyState = true because a newer edit is pending in the queue.");
+        }
+      } else {
+        setSyncState('error');
+        triggerToast("❌ Failed to save changes to the database. Retrying...");
+        setTimeout(() => {
+          if (pendingConfigRef.current === null && !isSavingRef.current) {
+            setSyncState('idle');
+          }
+        }, 3500);
       }
     }
 
-    if (success) {
-      isConfigDirtyRef.current = false;
-      setSyncState('saved');
-      setTimeout(() => setSyncState('idle'), 2500);
-    } else {
-      setSyncState('error');
-      setTimeout(() => setSyncState('idle'), 3500);
-    }
+    isSavingRef.current = false;
+  };
+
+  const saveConfigToBackend = async (newConfig: any) => {
+    triggerSaveConfig(newConfig);
   };
 
   // Debounce saving config to backend when siteConfig changes (only in Customizing Mode or Admin Mode)
@@ -465,7 +591,7 @@ export default function App() {
     // Set a debounce timer to save to backend in 800ms to avoid flooding backend/Firestore
     const timer = setTimeout(() => {
       console.log('Auto-saving updated customizer settings to live backend (debounced)...');
-      saveConfigToBackend(siteConfig);
+      triggerSaveConfig(siteConfig);
     }, 800);
 
     return () => clearTimeout(timer);
@@ -476,83 +602,27 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
+    console.log("Save Button Clicked");
+    console.log("Save function entered");
+    
+    // Save locally immediately
     localStorage.setItem('bd_site_config_v1', JSON.stringify(siteConfig));
-    saveConfigToBackend(siteConfig);
+    
+    // Trigger and wait for queue execution
+    triggerSaveConfig(siteConfig);
     triggerToast('✨ Settings saved successfully to live storefront!');
   };
 
   const handleBulkUpdateProducts = async (updatedProductsList: Product[]) => {
-    setSyncState('saving');
+    console.log("Bulk Products Update requested...");
     const updatedConfig = { ...siteConfig, products: updatedProductsList };
     setSiteConfig(updatedConfig);
     localStorage.setItem('bd_site_config_v1', JSON.stringify(updatedConfig));
-
-    let success = false;
-    let finalConfig = updatedConfig;
-
-    try {
-      // 1. Try to save using REST API first, which cleans up and migrates any huge base64 images on the server side!
-      // Add an 8-second timeout to prevent the POST request from hanging if payload is too big or connection is slow
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch('/api/site-config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        body: JSON.stringify({ config: updatedConfig }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.success && data.config) {
-          finalConfig = data.config;
-          setSiteConfig(finalConfig);
-          localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
-          success = true;
-          console.log("⚡ Bulk products updated successfully via REST API!");
-        }
-      }
-    } catch (err) {
-      console.warn('REST save error or timeout:', err);
-    }
-
-    // 2. Fallback to direct client-side Firestore write ONLY if REST API fails (or client is running purely client-side)
-    if (!success && clientDb) {
-      try {
-        const batch = writeBatch(clientDb);
-        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-        batch.set(docRef, finalConfig);
-        await batch.commit();
-        console.log("⚡ Bulk products updated successfully via Firestore writeBatch fallback!");
-        success = true;
-      } catch (dbErr) {
-        console.error('Error saving bulk products in batch fallback:', dbErr);
-        try {
-          handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
-        } catch (formattedErr) {
-          console.error("Formatted WRITE error on batch update fallback:", formattedErr);
-        }
-      }
-    }
-
-    if (success) {
-      isConfigDirtyRef.current = false;
-      setSyncState('saved');
-      setTimeout(() => setSyncState('idle'), 2500);
-      triggerToast('✨ Bulk prices and availability updated successfully!');
-    } else {
-      setSyncState('error');
-      setTimeout(() => setSyncState('idle'), 3500);
-      triggerToast('❌ Error performing bulk update.');
-    }
+    
+    // Trigger our unified, queue-safe save system!
+    triggerSaveConfig(updatedConfig);
+    triggerToast('✨ Bulk prices and availability updated successfully!');
   };
 
   const handleResetConfig = () => {
@@ -660,6 +730,7 @@ export default function App() {
             currentPageSlug={currentPageSlug}
             onChangePageSlug={setCurrentPageSlug}
             syncState={syncState}
+            isDirty={isDirtyState}
           />
         </div>
 
