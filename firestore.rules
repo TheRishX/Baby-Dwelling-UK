@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Secure SiteConfig match block
+    match /siteConfigs/{configId} {
+      allow read: if configId == "baby_dwelling";
+      allow create, update: if configId == "baby_dwelling" && isValidSiteConfig(request.resource.data);
+    }
+  }
+}
+
+// Validation Blueprint (Anti-Update-Gap / Anti-Resource-Poisoning)
+function isValidSiteConfig(data) {
+  return data.keys().hasAll([
+    'logoText', 'logoImage', 'heroTagline', 'heroTitle', 'heroSubtitle', 
+    'heroImage', 'badge1Title', 'badge1Text', 'badge2Title', 'badge2Text', 
+    'badge3Title', 'badge3Text', 'heroCta1Text', 'heroCta1Link', 
+    'heroCta2Text', 'heroCta2Link', 'categories', 'navigation', 
+    'pages', 'products', 'reviews', 'enableAmazonCheckout', 
+    'amazonCheckoutText', 'enableWalmartCheckout', 'walmartCheckoutText'
+  ]) &&
+  data.logoText is string && data.logoText.size() <= 200 &&
+  data.logoImage is string && data.logoImage.size() <= 3500000 &&
+  data.heroTagline is string && data.heroTagline.size() <= 1000 &&
+  data.heroTitle is string && data.heroTitle.size() <= 1000 &&
+  data.heroSubtitle is string && data.heroSubtitle.size() <= 2000 &&
+  data.heroImage is string && data.heroImage.size() <= 3500000 &&
+  data.badge1Title is string && data.badge1Title.size() <= 200 &&
+  data.badge1Text is string && data.badge1Text.size() <= 1000 &&
+  data.badge2Title is string && data.badge2Title.size() <= 200 &&
+  data.badge2Text is string && data.badge2Text.size() <= 1000 &&
+  data.badge3Title is string && data.badge3Title.size() <= 200 &&
+  data.badge3Text is string && data.badge3Text.size() <= 1000 &&
+  data.heroCta1Text is string && data.heroCta1Text.size() <= 200 &&
+  data.heroCta1Link is string && data.heroCta1Link.size() <= 1000 &&
+  data.heroCta2Text is string && data.heroCta2Text.size() <= 200 &&
+  data.heroCta2Link is string && data.heroCta2Link.size() <= 1000 &&
+  data.enableAmazonCheckout is bool &&
+  data.amazonCheckoutText is string && data.amazonCheckoutText.size() <= 200 &&
+  data.enableWalmartCheckout is bool &&
+  data.walmartCheckoutText is string && data.walmartCheckoutText.size() <= 200 &&
+  data.categories is list && data.categories.size() <= 50 &&
+  data.navigation is list && data.navigation.size() <= 50 &&
+  data.pages is list && data.pages.size() <= 100 &&
+  data.products is list && data.products.size() <= 200 &&
+  data.reviews is list && data.reviews.size() <= 200 &&
+  (data.get('signatureProduct', null) == null || data.signatureProduct is map) &&
+  (data.get('headerLogoHeight', null) == null || data.headerLogoHeight is int || data.headerLogoHeight is float) &&
+  (data.get('footerLogoHeight', null) == null || data.footerLogoHeight is int || data.footerLogoHeight is float) &&
+  (data.get('lastUpdated', null) == null || data.lastUpdated is int || data.lastUpdated is float);
+}

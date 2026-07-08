@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Literata", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+
+  --color-charcoal: #121212;
+  --color-warm-white: #FCFAF7;
+  --color-sand: #D8C3A5;
+  --color-terracotta: #C97C5D;
+  --color-sage: #9CA389;
+  --color-light-beige: #F5EFE7;
+}
+
+/* Custom transitions and animations */
+.glass-panel {
+  background: rgba(252, 250, 247, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass-panel {
+  background: rgba(18, 18, 18, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: #C97C5D;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #121212;
+}
+
+/* Shopify Customizer Specific High-Visibility Scrollbar */
+.shopify-customizer-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #008060 rgba(0, 0, 0, 0.05);
+}
+.shopify-customizer-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.shopify-customizer-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+}
+.shopify-customizer-scrollbar::-webkit-scrollbar-thumb {
+  background: #008060; /* Highly visible solid Shopify Green */
+  border: 1.5px solid #F6F6F7;
+  border-radius: 6px;
+  background-clip: padding-box;
+}
+.shopify-customizer-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #005c44; /* Darker Shopify Green on hover */
+}
+
+/* Custom focus styles for the logo image */
+div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2) > img:nth-of-type(1) {
+  border-radius: 8px !important;
+  padding: 6px !important;
+}
