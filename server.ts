@@ -2,37 +2,242 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 const CONFIG_FILE = path.join(process.cwd(), "site-config.json");
-const FIREBASE_CONFIG_FILE = path.join(process.cwd(), "firebase-applet-config.json");
 
-let db: any = null;
-
-// Initialize Firebase if the configuration is available
-if (fs.existsSync(FIREBASE_CONFIG_FILE)) {
-  try {
-    const fbConfig = JSON.parse(fs.readFileSync(FIREBASE_CONFIG_FILE, "utf-8"));
-    const firebaseConfig = {
-      apiKey: fbConfig.apiKey,
-      authDomain: fbConfig.authDomain,
-      projectId: fbConfig.projectId,
-      storageBucket: fbConfig.storageBucket,
-      messagingSenderId: fbConfig.messagingSenderId,
-      appId: fbConfig.appId,
-    };
+// Helper to parse CSV securely (including line breaks and quotes)
+function parseCSV(csvText: string): string[][] {
+  const result: string[][] = [];
+  let row: string[] = [];
+  let insideQuote = false;
+  let entry = "";
+  
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
     
-    const app = initializeApp(firebaseConfig);
-    // Use the custom database ID if specified, otherwise default
-    db = getFirestore(app, fbConfig.firestoreDatabaseId || "(default)");
-    console.log("Firebase Firestore successfully initialized for project:", fbConfig.projectId);
-  } catch (error) {
-    console.error("Failed to initialize Firebase Firestore:", error);
+    if (char === '"') {
+      if (insideQuote && nextChar === '"') {
+        entry += '"';
+        i++; // skip next quote
+      } else {
+        insideQuote = !insideQuote;
+      }
+    } else if (char === ',' && !insideQuote) {
+      row.push(entry);
+      entry = "";
+    } else if ((char === '\r' || char === '\n') && !insideQuote) {
+      if (char === '\r' && nextChar === '\n') {
+        i++;
+      }
+      row.push(entry);
+      result.push(row);
+      row = [];
+      entry = "";
+    } else {
+      entry += char;
+    }
   }
-} else {
-  console.warn("firebase-applet-config.json not found. Running with local fallback only.");
+  if (entry || row.length > 0) {
+    row.push(entry);
+    result.push(row);
+  }
+  return result.map(r => r.map(cell => cell.trim())).filter(r => r.length > 0 && r.some(cell => cell !== ""));
 }
+
+// Main Google Sheets Loader
+async function loadConfigFromGoogleSheets(googleSheetId: string): Promise<any> {
+  console.log(`[Google Sheets] Fetching configuration from sheet ID: ${googleSheetId}...`);
+  const fetchSheet = async (sheetName: string) => {
+    const url = `https://docs.google.com/spreadsheets/d/${googleSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sheet "${sheetName}": HTTP status ${response.status}`);
+    }
+    const csvText = await response.text();
+    return parseCSV(csvText);
+  };
+
+  try {
+    // Fetch all 4 sheets in parallel to keep loading extremely fast
+    const [globalRows, productRows, reviewRows, categoryRows] = await Promise.all([
+      fetchSheet("GlobalConfig").catch(err => {
+        console.warn("[Google Sheets] GlobalConfig sheet failed, using fallback empty rows:", err.message);
+        return [];
+      }),
+      fetchSheet("Products").catch(err => {
+        console.warn("[Google Sheets] Products sheet failed, using fallback empty rows:", err.message);
+        return [];
+      }),
+      fetchSheet("Reviews").catch(err => {
+        console.warn("[Google Sheets] Reviews sheet failed, using fallback empty rows:", err.message);
+        return [];
+      }),
+      fetchSheet("Categories").catch(err => {
+        console.warn("[Google Sheets] Categories sheet failed, using fallback empty rows:", err.message);
+        return [];
+      }),
+    ]);
+
+    // If all rows are empty, the sheet ID might be invalid or not public
+    if (globalRows.length === 0 && productRows.length === 0 && reviewRows.length === 0 && categoryRows.length === 0) {
+      throw new Error("All sheets returned empty data. Is your Google Sheet shared with 'Anyone with the link can view'?");
+    }
+
+    // Load base site-config.json so we can merge updates into it
+    let baseConfig: any = {};
+    if (fs.existsSync(CONFIG_FILE)) {
+      try {
+        baseConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+      } catch (err) {
+        console.error("[Google Sheets] Failed to parse base site-config.json:", err);
+      }
+    }
+
+    // Parse GlobalConfig
+    if (globalRows.length > 1) {
+      const headers = globalRows[0].map(h => h.toLowerCase());
+      const keyIdx = headers.indexOf("key");
+      const valIdx = headers.indexOf("value");
+      if (keyIdx !== -1 && valIdx !== -1) {
+        for (let i = 1; i < globalRows.length; i++) {
+          const key = globalRows[i][keyIdx];
+          const val = globalRows[i][valIdx];
+          if (key) {
+            // Handle booleans, numbers, or standard text
+            if (val.toLowerCase() === "true" || val.toLowerCase() === "yes") {
+              baseConfig[key] = true;
+            } else if (val.toLowerCase() === "false" || val.toLowerCase() === "no") {
+              baseConfig[key] = false;
+            } else if (!isNaN(Number(val)) && val !== "") {
+              baseConfig[key] = Number(val);
+            } else {
+              baseConfig[key] = val;
+            }
+          }
+        }
+      }
+    }
+
+    // Keep the googleSheetId property intact so it reflects in the state
+    baseConfig.googleSheetId = googleSheetId;
+
+    // Parse Products
+    if (productRows.length > 1) {
+      const headers = productRows[0].map(h => h.toLowerCase());
+      const products: any[] = [];
+      
+      for (let i = 1; i < productRows.length; i++) {
+        const row = productRows[i];
+        const prod: any = {};
+        
+        headers.forEach((header, colIdx) => {
+          const val = row[colIdx] || "";
+          if (!header) return;
+          
+          if (header === "price" || header === "originalprice" || header === "rating" || header === "reviewscount") {
+            prod[header === "originalprice" ? "originalPrice" : header === "reviewscount" ? "reviewsCount" : header] = Number(val) || 0;
+          } else if (header === "instock") {
+            prod.inStock = (val.toLowerCase() === "true" || val.toLowerCase() === "yes" || val === "1" || val === "");
+          } else if (header === "colors") {
+            prod.colors = val ? val.split(",").map(c => c.trim()).filter(Boolean) : [];
+          } else if (header === "images") {
+            prod.images = val ? val.split(",").map(img => img.trim()).filter(Boolean) : [];
+          } else if (header === "specs") {
+            const specs: Record<string, string> = {};
+            if (val) {
+              val.split(";").forEach(pair => {
+                const parts = pair.split(":");
+                if (parts.length >= 2) {
+                  const sKey = parts[0].trim();
+                  const sVal = parts.slice(1).join(":").trim();
+                  if (sKey && sVal) specs[sKey] = sVal;
+                }
+              });
+            }
+            prod.specs = specs;
+          } else {
+            prod[header] = val;
+          }
+        });
+        
+        if (prod.id) {
+          products.push(prod);
+        }
+      }
+      
+      if (products.length > 0) {
+        baseConfig.products = products;
+      }
+    }
+
+    // Parse Reviews
+    if (reviewRows.length > 1) {
+      const headers = reviewRows[0].map(h => h.toLowerCase());
+      const reviews: any[] = [];
+      
+      for (let i = 1; i < reviewRows.length; i++) {
+        const row = reviewRows[i];
+        const rev: any = {};
+        
+        headers.forEach((header, colIdx) => {
+          const val = row[colIdx] || "";
+          if (!header) return;
+          
+          if (header === "rating") {
+            rev.rating = Number(val) || 5;
+          } else if (header === "verified") {
+            rev.verified = (val.toLowerCase() === "true" || val.toLowerCase() === "yes" || val === "1");
+          } else if (header === "babyage") {
+            rev.babyAge = val;
+          } else {
+            rev[header] = val;
+          }
+        });
+        
+        if (rev.id || rev.name) {
+          reviews.push(rev);
+        }
+      }
+      
+      if (reviews.length > 0) {
+        baseConfig.reviews = reviews;
+      }
+    }
+
+    // Parse Categories
+    if (categoryRows.length > 1) {
+      const headers = categoryRows[0].map(h => h.toLowerCase());
+      const categories: any[] = [];
+      
+      for (let i = 1; i < categoryRows.length; i++) {
+        const row = categoryRows[i];
+        const cat: any = {};
+        
+        headers.forEach((header, colIdx) => {
+          const val = row[colIdx] || "";
+          if (!header) return;
+          cat[header] = val;
+        });
+        
+        if (cat.id) {
+          categories.push(cat);
+        }
+      }
+      
+      if (categories.length > 0) {
+        baseConfig.categories = categories;
+      }
+    }
+
+    console.log("[Google Sheets] Successfully parsed all sheets!");
+    return baseConfig;
+  } catch (err: any) {
+    console.error("[Google Sheets] Error reading from Google Sheet:", err.message);
+    throw err;
+  }
+}
+
 
 // Ensure uploads directory exists globally
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -100,36 +305,42 @@ function migrateBase64ConfigToLocal(config: any): boolean {
   return changed;
 }
 
-// Helper to load site configuration (Firestore with local fallback and automatic high-res Unsplash migration)
+// Helper to load site configuration (Google Sheets dynamic loader with local filesystem cache)
 async function loadConfig() {
   let config: any = null;
-  if (db) {
-    try {
-      const docRef = doc(db, "siteConfigs", "baby_dwelling");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        config = docSnap.data();
-        // Backup the firestore data locally
-        try {
-          fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
-        } catch (err) {
-          console.error("Failed to write local backup of Firestore config:", err);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching config from Firestore, falling back to local file:", error);
+
+  // 1. Load the local configuration first to retrieve googleSheetId or provide fallback
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      const data = fs.readFileSync(CONFIG_FILE, "utf-8");
+      config = JSON.parse(data);
     }
+  } catch (error) {
+    console.error("Error reading site-config.json file:", error);
   }
 
-  // Fallback to local site-config.json
+  // If no config file exists yet, let's load from the default template or empty state
   if (!config) {
+    config = {};
+  }
+
+  // 2. If googleSheetId is set, attempt to load fresh data from Google Sheets!
+  if (config.googleSheetId) {
     try {
-      if (fs.existsSync(CONFIG_FILE)) {
-        const data = fs.readFileSync(CONFIG_FILE, "utf-8");
-        config = JSON.parse(data);
+      const freshConfig = await loadConfigFromGoogleSheets(config.googleSheetId);
+      if (freshConfig) {
+        config = freshConfig;
+        
+        // Update the local site-config.json file as a persistent cache/backup
+        try {
+          fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+          console.log("[Google Sheets] Successfully cached fresh sheet data locally.");
+        } catch (err) {
+          console.error("Failed to write local backup of Google Sheet config:", err);
+        }
       }
-    } catch (error) {
-      console.error("Error reading site-config.json fallback:", error);
+    } catch (err: any) {
+      console.warn("[Google Sheets] Sheet sync failed; using last cached configuration:", err.message);
     }
   }
 
@@ -216,9 +427,9 @@ function updateConfigImageVersions(oldConfig: any, newConfig: any) {
   }
 }
 
-// Helper to save site configuration (Firestore + local backup)
+// Helper to save site configuration (Local disk caching ONLY - no Firebase)
 async function saveConfig(config: any) {
-  // Migrate any base64 images to local files before saving to keep Firestore and config small
+  // Migrate any base64 images to local files before saving to keep config small
   migrateBase64ConfigToLocal(config);
 
   // Load existing config to apply differential versioning to changed images
@@ -237,22 +448,13 @@ async function saveConfig(config: any) {
   // Apply differential image versioning to auto-invalidate browser and CDN caches
   updateConfigImageVersions(oldConfig, config);
 
-  if (db) {
-    try {
-      const docRef = doc(db, "siteConfigs", "baby_dwelling");
-      await setDoc(docRef, config);
-      console.log("Configuration saved to Firestore successfully!");
-    } catch (error) {
-      console.error("Error saving config to Firestore:", error);
-      throw error; // Propagate the error to the API route handler so the client triggers fallback
-    }
-  }
-
-  // Always write locally as a persistent local backup
+  // Write directly to local disk
   try {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+    console.log("Configuration saved to disk cache successfully!");
   } catch (error) {
-    console.error("Error writing site-config.json locally:", error);
+    console.error("Error saving config to disk cache:", error);
+    throw error;
   }
 }
 
@@ -366,6 +568,28 @@ async function startServer() {
       }
     } else {
       res.status(400).json({ error: "Missing config object" });
+    }
+  });
+
+  app.post("/api/site-config/sync", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+
+    try {
+      const config = await loadConfig();
+      if (config && config.googleSheetId) {
+        console.log(`[Google Sheets] Manual Sync Requested for Sheet ID: ${config.googleSheetId}`);
+        const freshConfig = await loadConfigFromGoogleSheets(config.googleSheetId);
+        await saveConfig(freshConfig);
+        res.json({ success: true, config: freshConfig });
+      } else {
+        res.status(400).json({ error: "No Google Sheet ID is currently connected in the configuration." });
+      }
+    } catch (err: any) {
+      console.error("[Google Sheets] Sync error:", err);
+      res.status(500).json({ error: `Failed to sync Google Sheet: ${err.message}` });
     }
   });
 

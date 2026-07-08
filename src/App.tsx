@@ -13,64 +13,6 @@ import ShopifyCustomizer from './components/ShopifyCustomizer';
 import { products as initialProducts, signatureProduct as initialSignatureProduct, reviewsData as initialReviews } from './data';
 import { Settings, Palette } from 'lucide-react';
 import SeoView from './views/SeoView';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, onSnapshot, setDoc, writeBatch, getDocFromServer } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
-
-// Firestore Error Types and Utilities as mandated by firebase-integration skill
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: null,
-      email: null,
-      emailVerified: null,
-      isAnonymous: null,
-      tenantId: null,
-      providerInfo: []
-    },
-    operationType,
-    path
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
-}
-
-let clientDb: any = null;
-try {
-  const app = initializeApp(firebaseConfig);
-  clientDb = getFirestore(app, firebaseConfig.firestoreDatabaseId || "(default)");
-  
-  // Firestore initialized successfully
-} catch (error) {
-  console.warn("Failed to initialize Firebase on frontend client:", error);
-}
 
 const DEFAULT_CONFIG = {
   logoText: 'Baby Dwelling',
@@ -237,138 +179,41 @@ export default function App() {
     localStorage.setItem('bd_customizing_mode', String(isCustomizingMode));
   }, [isCustomizingMode]);
 
-  // Fetch site configuration from Express server on mount and synchronize via real-time Firestore listener
+  // Fetch site configuration from Express server on mount and synchronize via interval polling
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
-
     const fetchConfigFromServer = async () => {
-      let loadedConfig = null;
-      let readAttemptedAndFailed = false;
-
-      // 1. Try to fetch directly from Firestore client-side first (extremely fast and robust for Vercel)
-      if (clientDb) {
-        try {
-          const { getDoc } = await import('firebase/firestore');
-          const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            loadedConfig = docSnap.data();
-            console.log("⚡ Loaded initial config directly from Firestore on client mount!");
+      try {
+        const response = await fetch(`/api/site-config?t=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
-        } catch (dbErr: any) {
-          readAttemptedAndFailed = true;
-          console.error("Error fetching initial config from Firestore client:", dbErr);
-          try {
-            handleFirestoreError(dbErr, OperationType.GET, "siteConfigs/baby_dwelling");
-          } catch (formattedErr) {
-            console.error("Formatted GET error on config load:", formattedErr);
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.config) {
+            setSiteConfig(data.config);
+            localStorage.setItem('bd_site_config_v1', JSON.stringify(data.config));
           }
         }
-      }
-
-      // 2. Fallback to REST API if Firestore didn't succeed
-      if (!loadedConfig) {
-        try {
-          const response = await fetch(`/api/site-config?t=${Date.now()}`, {
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.config) {
-              loadedConfig = data.config;
-            } else {
-              // If the REST API also had a DB read failure, mark as failed so we don't overwrite DB with defaults
-              readAttemptedAndFailed = true;
-            }
-          } else {
-            readAttemptedAndFailed = true;
-          }
-        } catch (err) {
-          readAttemptedAndFailed = true;
-          console.warn('REST config fetch error (expected on serverless Vercel):', err);
-        }
-      }
-
-      // 3. Set the state
-      if (loadedConfig) {
-        setSiteConfig(loadedConfig);
-        localStorage.setItem('bd_site_config_v1', JSON.stringify(loadedConfig));
-      } else {
-        // No configuration fetched, use local storage or defaults
-        const saved = localStorage.getItem('bd_site_config_v1');
-        const initialConfig = saved ? JSON.parse(saved) : DEFAULT_CONFIG;
-        setSiteConfig(initialConfig);
-
-        // CRITICAL: Only write to backend if the read succeeded but returned nothing (empty DB).
-        // If the read failed due to permissions/quota/network, DO NOT write to avoid infinite loops and quota exhaust.
-        if (!readAttemptedAndFailed) {
-          console.log("Creating new config in backend since database was empty (not because of read failure)");
-          saveConfigToBackend(initialConfig);
-        } else {
-          console.warn("Read failed; skipping write-back to backend to prevent infinite write/retry loop.");
-        }
+      } catch (err) {
+        console.warn('REST config fetch error:', err);
       }
     };
 
-    // 1. Initial fresh fetch on mount with absolute cache-busting
+    // 1. Initial fresh fetch on mount
     fetchConfigFromServer();
 
-    // 2. Setup Real-time Firebase Firestore synchronization
-    if (clientDb) {
-      try {
-        const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-        unsubscribe = onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            console.log("⚡ Real-time update received from Firestore:", data);
-            
-            // Only auto-update siteConfig if the admin is NOT actively customizing on this specific device,
-            // to avoid overwriting their active typing/selection.
-            if (!isCustomizingMode && activeView !== 'admin') {
-              setSiteConfig(data);
-              localStorage.setItem('bd_site_config_v1', JSON.stringify(data));
-            }
-          }
-        }, (error: any) => {
-          console.error("Firestore listener error, falling back to polling:", error);
-          try {
-            handleFirestoreError(error, OperationType.GET, "siteConfigs/baby_dwelling");
-          } catch (formattedErr) {
-            console.error("Formatted onSnapshot listener error:", formattedErr);
-          }
-
-          // Fallback to active polling if listener fails, with backoff for quota/permission errors
-          const isPermanentOrQuotaError = error?.code === 'permission-denied' || error?.code === 'resource-exhausted' || String(error).includes('Quota');
-          const pollInterval = isPermanentOrQuotaError ? 60000 : 10000; // 60s for permanent/quota errors, 10s otherwise
-          console.warn(`Firestore listener failed. Polling fallback interval set to ${pollInterval}ms.`);
-
-          const interval = setInterval(() => {
-            if (!isCustomizingMode && activeView !== 'admin') {
-              fetchConfigFromServer();
-            }
-          }, pollInterval);
-          unsubscribe = () => clearInterval(interval);
-        });
-      } catch (err) {
-        console.error("Error setting up Firestore listener:", err);
+    // 2. Setup periodic polling (every 15 seconds) so changes made to Google Sheets update on the storefront automatically!
+    const interval = setInterval(() => {
+      // Only auto-update if the user is not in admin/customizer view to avoid overwriting their form changes
+      if (!isCustomizingMode && activeView !== 'admin') {
+        fetchConfigFromServer();
       }
-    } else {
-      // Fallback: active polling
-      const interval = setInterval(() => {
-        if (!isCustomizingMode && activeView !== 'admin') {
-          fetchConfigFromServer();
-        }
-      }, 10000); // 10s for normal polling
-      unsubscribe = () => clearInterval(interval);
-    }
+    }, 15000);
 
-    return () => {
-      unsubscribe();
-    };
+    return () => clearInterval(interval);
   }, [isCustomizingMode, activeView]);
 
   const executeWithRetry = async <T,>(
@@ -453,26 +298,9 @@ export default function App() {
       let success = false;
       let finalConfig = validatedPayload;
 
-      // Log DB metadata, path, collection and authentications
-      console.log("Firestore Document Path:\nCollection: siteConfigs\nDocument ID: baby_dwelling\nPath: siteConfigs/baby_dwelling");
-      
-      // Conditionally import and log Firebase authentication state if initialized
-      try {
-        const { getAuth } = await import('firebase/auth');
-        const auth = getAuth();
-        if (auth.currentUser) {
-          console.log(`Firebase Authentication:\nUser UID: ${auth.currentUser.uid}\nEmail: ${auth.currentUser.email}\nEmail Verified: ${auth.currentUser.emailVerified}`);
-        } else {
-          console.log("Firebase Authentication: No active email session. Authorized via staff security passcode.");
-        }
-      } catch (authErr) {
-        console.log("Firebase Authentication info check: Auth module not actively initialized.");
-      }
-
-      console.log("Firestore Write Started");
+      console.log("Configuration Write Started");
 
       try {
-        // 1. Try to save using REST API first, which migrates any huge base64 images on the server side
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -494,57 +322,16 @@ export default function App() {
           if (data && data.success && data.config) {
             finalConfig = data.config;
             
-            // Only update active siteConfig state if there are NO new edits queued while saving!
             if (pendingConfigRef.current === null) {
               setSiteConfig(finalConfig);
               localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
-            } else {
-              console.log("Skipped setting active state: a newer payload is queued in the save pipeline.");
             }
             success = true;
-            console.log("⚡ Firestore Write Success via REST API (Server Proxy)!");
-          } else {
-            console.warn("REST API responded with bad payload structure:", data);
+            console.log("⚡ Configuration Saved successfully via REST API!");
           }
-        } else {
-          console.warn(`REST API failed with HTTP status ${res.status}`);
         }
       } catch (err: any) {
-        console.warn('REST save error or timeout (trying direct Firestore client fallback):', {
-          message: err.message || err,
-          code: err.code || 'UNKNOWN',
-          stack: err.stack || ''
-        });
-      }
-
-      // 2. Fallback to direct client-side Firestore write ONLY if REST API fails
-      if (!success && clientDb) {
-        try {
-          console.log("Direct client fallback Firestore write started...");
-          const docRef = doc(clientDb, "siteConfigs", "baby_dwelling");
-          await executeWithRetry(async () => {
-            // Use { merge: true } to be perfectly safe against overwriting other properties
-            await setDoc(docRef, finalConfig, { merge: true });
-          }, 3, 1000);
-          
-          if (pendingConfigRef.current === null) {
-            setSiteConfig(finalConfig);
-            localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
-          }
-          console.log("⚡ Firestore Write Success directly from client (Fallback path)!");
-          success = true;
-        } catch (dbErr: any) {
-          console.error('Error saving directly to Firestore from client:', {
-            message: dbErr.message || dbErr,
-            code: dbErr.code || 'UNKNOWN',
-            stack: dbErr.stack || ''
-          });
-          try {
-            handleFirestoreError(dbErr, OperationType.WRITE, "siteConfigs/baby_dwelling");
-          } catch (formattedErr) {
-            console.error("Formatted WRITE error on config save fallback:", formattedErr);
-          }
-        }
+        console.warn('REST save error:', err);
       }
 
       if (success) {

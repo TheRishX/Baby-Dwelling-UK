@@ -27,13 +27,12 @@ import {
   LogOut,
   Globe,
   Save,
-  Terminal
+  Database
 } from 'lucide-react';
 import { Product, Review } from '../types';
 import WysiwygEditor from '../components/WysiwygEditor';
 import SeoView from './SeoView';
 import { compressImage } from '../utils/image';
-import FirebaseDiagnostics from '../components/FirebaseDiagnostics';
 
 interface AdminViewProps {
   siteConfig: any;
@@ -58,7 +57,7 @@ export default function AdminView({
   onSave = () => {},
   onBulkUpdateProducts = async () => {},
 }: AdminViewProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'homepage' | 'products' | 'categories' | 'pages' | 'navigation' | 'reviews' | 'seo' | 'firebase_debug'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homepage' | 'products' | 'categories' | 'pages' | 'navigation' | 'reviews' | 'seo' | 'google_sheets'>('dashboard');
   const [productsSubTab, setProductsSubTab] = useState<'standard' | 'bulk'>('standard');
   const [bulkProducts, setBulkProducts] = useState<Product[]>([]);
 
@@ -575,15 +574,15 @@ export default function AdminView({
           </button>
 
           <button
-            onClick={() => setActiveTab('firebase_debug')}
+            onClick={() => setActiveTab('google_sheets')}
             className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-3 transition-all ${
-              activeTab === 'firebase_debug' 
+              activeTab === 'google_sheets' 
                 ? 'bg-[#EAF3EF] text-[#008060]' 
                 : 'text-[#4C4E50] hover:bg-[#F6F6F7]'
             }`}
           >
-            <Terminal size={18} className="text-[#008060]" />
-            <span>Firebase Debugger</span>
+            <Database size={18} className="text-[#008060]" />
+            <span>Google Sheets Database</span>
           </button>
         </aside>
 
@@ -2385,14 +2384,203 @@ export default function AdminView({
             </div>
           )}
 
-          {/* TAB 6: FIREBASE DEBUGGER */}
-          {activeTab === 'firebase_debug' && (
-            <div className="flex flex-col gap-6">
-              <FirebaseDiagnostics 
-                siteConfig={siteConfig}
-                onSaveConfig={setSiteConfig}
-                triggerToast={triggerToast}
-              />
+          {/* TAB 6: GOOGLE SHEETS DATABASE */}
+          {activeTab === 'google_sheets' && (
+            <div className="bg-white p-8 rounded-2xl border border-[#E1E3E5] shadow-sm flex flex-col gap-8">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2.5">
+                  <Database className="text-[#008060]" size={24} />
+                  Google Sheets Headless CMS
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Connect a Google Sheet to act as the primary database for your website content, images, products, and reviews.
+                </p>
+              </div>
+
+              {/* Connected Status Alert */}
+              <div className={`p-4 rounded-xl border flex items-start gap-3.5 ${
+                siteConfig.googleSheetId 
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                  : 'bg-gray-50 border-gray-200 text-gray-600'
+              }`}>
+                <div className={`p-2 rounded-lg mt-0.5 ${
+                  siteConfig.googleSheetId ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  <Database size={18} />
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-sm font-semibold">
+                    {siteConfig.googleSheetId ? 'Database Status: Connected & Syncing' : 'Database Status: Standalone / Local Cache'}
+                  </h4>
+                  <p className="text-xs mt-1 leading-relaxed opacity-90">
+                    {siteConfig.googleSheetId 
+                      ? `Your storefront is actively loading content from Google Sheet ID: "${siteConfig.googleSheetId}". Changes made in your sheet will reflect live on refresh or periodic sync.`
+                      : 'Your storefront is running off local backups and the Visual Customizer. Link a Google Sheet below to transition to sheet-backed database synchronization.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Sheet ID Input Panel */}
+              <div className="flex flex-col gap-4">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Google Sheet ID or URL
+                </label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    placeholder="e.g. 1aBC-deFghIjKlMnOpQrStUvWxYz1234567890abcdef"
+                    defaultValue={siteConfig.googleSheetId || ""}
+                    id="googleSheetIdInput"
+                    className="flex-grow px-4 py-3 rounded-lg border border-[#BABFC3] text-sm focus:outline-none focus:ring-2 focus:ring-[#008060] font-mono text-gray-800"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        const input = document.getElementById('googleSheetIdInput') as HTMLInputElement;
+                        const fullVal = input?.value?.trim() || "";
+                        // Extract spreadsheet ID from full URL if pasted
+                        let extractedId = fullVal;
+                        if (fullVal.includes("docs.google.com/spreadsheets")) {
+                          const matches = fullVal.match(/\/d\/([a-zA-Z0-9-_]+)/);
+                          if (matches && matches[1]) {
+                            extractedId = matches[1];
+                          }
+                        }
+
+                        if (!extractedId) {
+                          alert("Please enter a valid Google Sheet ID or URL");
+                          return;
+                        }
+
+                        const updatedConfig = { ...siteConfig, googleSheetId: extractedId };
+                        setSiteConfig(updatedConfig);
+                        // Trigger unified save
+                        onSave();
+                        triggerToast("🔗 Google Sheet ID saved successfully!");
+                      }}
+                      className="px-5 py-3 bg-[#008060] hover:bg-[#006e52] text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                    >
+                      Connect Sheet
+                    </button>
+                    {siteConfig.googleSheetId && (
+                      <button
+                        onClick={() => {
+                          const updatedConfig = { ...siteConfig, googleSheetId: "" };
+                          setSiteConfig(updatedConfig);
+                          onSave();
+                          const input = document.getElementById('googleSheetIdInput') as HTMLInputElement;
+                          if (input) input.value = "";
+                          triggerToast("🔌 Disconnected Google Sheet database.");
+                        }}
+                        className="px-4 py-3 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Disconnect
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Tip: You can paste the entire Google Sheet browser URL. We will automatically parse out the Spreadsheet ID for you!
+                </p>
+              </div>
+
+              {/* Force Sync Actions */}
+              {siteConfig.googleSheetId && (
+                <div className="bg-[#F6F6F7] p-5 rounded-xl border border-[#E1E3E5] flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-800">Need immediate synchronization?</h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Trigger a fresh manual fetch from Google Sheets to invalidate cache and fetch updates immediately.
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        triggerToast("🔄 Refreshing database content from Google Sheets...");
+                        const response = await fetch("/api/site-config/sync", { method: "POST" });
+                        if (response.ok) {
+                          const data = await response.json();
+                          if (data.success && data.config) {
+                            setSiteConfig(data.config);
+                            triggerToast("✨ Storefront successfully synchronized with Google Sheets!");
+                          } else {
+                            alert("Sync completed but returned invalid configuration structure.");
+                          }
+                        } else {
+                          const errData = await response.json();
+                          alert(`Sync failed: ${errData.error || "Unknown server error"}`);
+                        }
+                      } catch (err: any) {
+                        alert(`Network error triggering sync: ${err.message}`);
+                      }
+                    }}
+                    className="px-5 py-3 bg-white hover:bg-[#F1F2F4] border border-[#BABFC3] text-gray-700 text-xs font-bold rounded-lg transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                  >
+                    Force Sync Now
+                  </button>
+                </div>
+              )}
+
+              {/* Step-by-Step Instructions */}
+              <div className="border-t border-[#E1E3E5] pt-6 flex flex-col gap-6">
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                  How to setup your Google Sheet Database
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-gray-600 leading-relaxed">
+                  
+                  {/* STEP 1 */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#008060]/10 text-[#008060] font-bold flex items-center justify-center shrink-0">1</div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800 mb-1">Create a Copy of the Template</h5>
+                      <p className="mb-2">We have pre-structured a template containing all tabs, columns, and sample contents perfectly paired with this website layout.</p>
+                      <a 
+                        href="https://docs.google.com/spreadsheets/d/1XpYw_Uo_wA-h8lF9_yvE1qXn8T6_bX_i_vA_k-Y_pXo/copy" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[#008060] font-semibold hover:underline"
+                      >
+                        Click to Copy Template Sheet <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* STEP 2 */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#008060]/10 text-[#008060] font-bold flex items-center justify-center shrink-0">2</div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800 mb-1">Share the Sheet View Privileges</h5>
+                      <p>In Google Sheets, click the blue <strong>Share</strong> button in the top right. Under General Access, change "Restricted" to <strong>"Anyone with the link"</strong> as a <strong>Viewer</strong>.</p>
+                    </div>
+                  </div>
+
+                  {/* STEP 3 */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#008060]/10 text-[#008060] font-bold flex items-center justify-center shrink-0">3</div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800 mb-1">Map Your Sheet Layout Tabs</h5>
+                      <p className="mb-1">Your Google Sheet MUST have exactly 4 tabs (sheet names):</p>
+                      <ul className="list-disc pl-4 space-y-0.5 font-mono text-[10px] text-gray-500">
+                        <li><strong>GlobalConfig</strong> (Columns: Key, Value)</li>
+                        <li><strong>Products</strong> (Columns: id, title, tagline, description, price, etc.)</li>
+                        <li><strong>Reviews</strong> (Columns: id, name, comment, rating, babyAge, verified)</li>
+                        <li><strong>Categories</strong> (Columns: id, name, image)</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* STEP 4 */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#008060]/10 text-[#008060] font-bold flex items-center justify-center shrink-0">4</div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800 mb-1">Sync, Edit & Enjoy!</h5>
+                      <p>Paste the spreadsheet URL in the box above, click "Connect Sheet", and you're done! Any future edits in Google Sheets will reflect live on the website.</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
           )}
 
