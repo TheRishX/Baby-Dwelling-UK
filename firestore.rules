@@ -9,8 +9,13 @@ service cloud.firestore {
 
     // Secure SiteConfig match block
     match /siteConfigs/{configId} {
-      allow read: if configId == "baby_dwelling";
-      allow create, update: if configId == "baby_dwelling" && isValidSiteConfig(request.resource.data);
+      allow read: if configId == "baby_dwelling" || configId == "baby_dwelling_test";
+      allow create, update: if (configId == "baby_dwelling" || configId == "baby_dwelling_test") && isValidSiteConfig(request.resource.data);
+    }
+
+    // Diagnostics collection for real-time connection checks
+    match /diagnostics/{docId} {
+      allow read, write: if docId.size() <= 128;
     }
   }
 }

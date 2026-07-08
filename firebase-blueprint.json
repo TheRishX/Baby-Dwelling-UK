@@ -78,6 +78,14 @@
     "siteConfigs/baby_dwelling": {
       "schema": "SiteConfig",
       "description": "Storefront customization details"
+    },
+    "siteConfigs/baby_dwelling_test": {
+      "schema": "SiteConfig",
+      "description": "Storefront configuration test document used for save pipeline checks"
+    },
+    "diagnostics/{docId}": {
+      "schema": "object",
+      "description": "Transient developer documents created for Firestore CRUD diagnostics"
     }
   }
 }

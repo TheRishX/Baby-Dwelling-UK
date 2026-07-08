@@ -335,6 +335,10 @@ async function startServer() {
   app.use("/uploads", express.static(uploadsDir));
 
   // API endpoints must go FIRST
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: Date.now() });
+  });
+
   app.get("/api/site-config", async (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");

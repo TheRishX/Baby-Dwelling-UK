@@ -26,12 +26,14 @@ import {
   Link,
   LogOut,
   Globe,
-  Save
+  Save,
+  Terminal
 } from 'lucide-react';
 import { Product, Review } from '../types';
 import WysiwygEditor from '../components/WysiwygEditor';
 import SeoView from './SeoView';
 import { compressImage } from '../utils/image';
+import FirebaseDiagnostics from '../components/FirebaseDiagnostics';
 
 interface AdminViewProps {
   siteConfig: any;
@@ -56,7 +58,7 @@ export default function AdminView({
   onSave = () => {},
   onBulkUpdateProducts = async () => {},
 }: AdminViewProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'homepage' | 'products' | 'categories' | 'pages' | 'navigation' | 'reviews' | 'seo'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homepage' | 'products' | 'categories' | 'pages' | 'navigation' | 'reviews' | 'seo' | 'firebase_debug'>('dashboard');
   const [productsSubTab, setProductsSubTab] = useState<'standard' | 'bulk'>('standard');
   const [bulkProducts, setBulkProducts] = useState<Product[]>([]);
 
@@ -81,6 +83,12 @@ export default function AdminView({
   };
 
   const [isSavedToastOpen, setIsSavedToastOpen] = useState(false);
+  const [toastText, setToastText] = useState('Storefront Settings Saved to Shopify Live');
+  const triggerToast = (msg: string) => {
+    setToastText(msg);
+    setIsSavedToastOpen(true);
+    setTimeout(() => setIsSavedToastOpen(false), 3000);
+  };
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadPendingState, setUploadPendingState] = useState<'idle' | 'compressing' | 'uploading' | 'saving' | 'completed' | 'error'>('idle');
@@ -162,8 +170,7 @@ export default function AdminView({
   };
 
   const showSavedToast = () => {
-    setIsSavedToastOpen(true);
-    setTimeout(() => setIsSavedToastOpen(false), 3000);
+    triggerToast('Storefront Settings Saved to Shopify Live');
   };
 
   // Generic content editor handler
@@ -565,6 +572,18 @@ export default function AdminView({
           >
             <Globe size={18} />
             <span>Google SEO Hub</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('firebase_debug')}
+            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-3 transition-all ${
+              activeTab === 'firebase_debug' 
+                ? 'bg-[#EAF3EF] text-[#008060]' 
+                : 'text-[#4C4E50] hover:bg-[#F6F6F7]'
+            }`}
+          >
+            <Terminal size={18} className="text-[#008060]" />
+            <span>Firebase Debugger</span>
           </button>
         </aside>
 
@@ -2366,6 +2385,17 @@ export default function AdminView({
             </div>
           )}
 
+          {/* TAB 6: FIREBASE DEBUGGER */}
+          {activeTab === 'firebase_debug' && (
+            <div className="flex flex-col gap-6">
+              <FirebaseDiagnostics 
+                siteConfig={siteConfig}
+                onSaveConfig={setSiteConfig}
+                triggerToast={triggerToast}
+              />
+            </div>
+          )}
+
         </section>
 
       </div>
@@ -2380,7 +2410,7 @@ export default function AdminView({
             className="fixed bottom-6 right-6 bg-[#1A1C1D] border border-white/10 text-white py-3.5 px-5 rounded-xl shadow-xl flex items-center gap-2.5 z-50 text-xs font-semibold tracking-wide"
           >
             <Check size={16} className="text-green-500 stroke-[3px]" />
-            <span>Storefront Settings Saved to Shopify Live</span>
+            <span>{toastText}</span>
           </motion.div>
         )}
       </AnimatePresence>
