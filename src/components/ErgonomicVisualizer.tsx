@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, AlertCircle, Info, ShieldCheck } from 'lucide-react';
-import OptimizedImage from './customizer/OptimizedImage';
+import OptimizedImage from './OptimizedImage';
 
 export default function ErgonomicVisualizer() {
   const [activeTab, setActiveTab] = useState<'correct' | 'incorrect'>('correct');

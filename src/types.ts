@@ -43,5 +43,5 @@ export interface CustomPage {
   createdAt: string;
 }
 
-export type ActiveView = 'home' | 'shop' | 'detail' | 'admin' | 'page' | 'seo';
+export type ActiveView = 'home' | 'shop' | 'detail' | 'page' | 'seo';
 

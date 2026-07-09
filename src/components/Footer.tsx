@@ -1,6 +1,6 @@
 import { ActiveView } from '../types';
 import { Instagram, Facebook, Pin } from 'lucide-react';
-import OptimizedImage from './customizer/OptimizedImage';
+import OptimizedImage from './OptimizedImage';
 
 interface FooterProps {
   setActiveView: (view: ActiveView) => void;
@@ -175,7 +175,9 @@ export default function Footer({
 
         {/* Bottom copyright line */}
         <div className="font-sans text-xs text-charcoal/50 border-t border-sand/20 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span>© 2026 Baby Dwelling. Crafted with love for Gentle Luxury.</span>
+          <div className="flex flex-col gap-1 items-center md:items-start text-center md:text-left">
+            <span>© 2026 Baby Dwelling. Crafted with love for Gentle Luxury.</span>
+          </div>
           <div className="flex gap-6">
             <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-charcoal transition-colors">Privacy Policy</a>
             <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-charcoal transition-colors">Terms of Service</a>

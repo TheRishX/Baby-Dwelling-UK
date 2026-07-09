@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, CartItem, ActiveView } from './types';
 import Navbar from './components/Navbar';
@@ -7,449 +7,19 @@ import HomeView from './views/HomeView';
 import ShopView from './views/ShopView';
 import ProductDetailView from './views/ProductDetailView';
 import CartDrawer from './components/CartDrawer';
-import AdminView from './views/AdminView';
 import CustomPageView from './views/CustomPageView';
-import ShopifyCustomizer from './components/ShopifyCustomizer';
-import { products as initialProducts, signatureProduct as initialSignatureProduct, reviewsData as initialReviews } from './data';
-import { Settings, Palette } from 'lucide-react';
 import SeoView from './views/SeoView';
-import { initAuth } from './services/googleSheets';
-
-const DEFAULT_CONFIG = {
-  logoText: 'Baby Dwelling',
-  logoImage: '',
-  headerLogoHeight: 40,
-  footerLogoHeight: 32,
-  heroTagline: 'Baby Dwelling USA • Premium Certified Organic Babywearing',
-  heroTitle: 'Breathe Easy.<br />Bond Deeply.',
-  heroSubtitle: 'Welcome to Baby Dwelling USA. Experience premium ergonomic comfort with our pediatric-approved, certified hip-healthy baby carriers, ring slings, and wraps. Artfully woven from 100% natural organic fabrics.',
-  heroImage: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783527014/IMG_3198_qpnsv4.avif',
-
-  badge1Title: 'Ergonomically Certified',
-  badge1Text: 'Healthy hip & spine developmental support.',
-  badge2Title: 'Pure Premium Materials',
-  badge2Text: 'Breathable organic linen & combed hemp weaves.',
-  badge3Title: 'Carbon Neutral Delivery',
-  badge3Text: 'Free UK shipping on orders over £50.',
-
-  heroCta1Text: 'Shop Collection',
-  heroCta1Link: 'shop',
-  heroCta2Text: 'Signature Heritage',
-  heroCta2Link: 'detail',
-
-  categories: [
-    { id: 'all', name: 'All Products', subtitle: 'All Collections' },
-    {
-      id: 'carriers',
-      name: 'Carriers',
-      subtitle: '0 - 48 Months',
-      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat1_k3davh.avif'
-    },
-    {
-      id: 'pouchesX',
-      name: 'Pouches',
-      subtitle: '0 - 12 Months',
-      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat2_k3davh.avif'
-    },
-    {
-      id: 'combos',
-      name: 'Combos',
-      subtitle: 'Complete Sets',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC2Piw4J1xyoTlo5PGRSLjIISiFjyiPgMDlCYZn_jWcfZfK4mjePiBtpaOlkUdVfFc2CL3Jk66_BDlQQARD9aBAorecrOG_Q_kRZ1LFZFmrLdIw1YkOnGkS05K6PEJakq1rPQExw_6GbIH_ckRcEU0OyoDRTRHU6HYq7jiK4aR-b79qEgiWph_gECwsAsaLNc9ljjOGevOxt78Ds34LFBNSnDT6wop79rqU0QB28I72tqUOO_9dJuIWJbL1s9TkdX8M4pWH7l0eOGI'
-    },
-    {
-      id: 'accessories',
-      name: 'Accessories',
-      subtitle: 'Support Essentials',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
-    }
-  ],
-
-  navigation: [
-    { label: 'Our Story', target: 'home' },
-    { label: 'Shop All', target: 'shop' },
-    { label: 'Signature Heritage', target: 'detail' },
-    { label: 'Sizing Help', target: 'page:sizing-guide' }
-  ],
-
-  pages: [
-    {
-      id: 'about-us',
-      title: 'Our Clean Sourcing Mission',
-      slug: 'about-us',
-      body: `<div class="space-y-6">
-  <p>At <strong>Baby Dwelling USA</strong>, we believe that the closest bond in life is formed during those early, cozy hours of skin-to-skin touch. That is why our products are designed with 100% natural, certified organic, earth-grown fibers to protect your baby's gentle skin.</p>
-  <h3>100% Organic &amp; Clean Raw Materials</h3>
-  <p>Every ergonomic baby carrier, ring sling, and newborn pouch in our collection is exclusively sourced from certified organic fair-trade farms. By eliminating plastic materials, toxic chemicals, and synthetic dye-stuffs, we guarantee a pure, safe space for your little ones to rest, cuddle, and sleep.</p>
-  <blockquote>"Baby Dwelling USA is dedicated to crafting premium, certified ergonomic baby carriers that provide a lifetime of intimacy, healthy skeletal growth, and ecological preservation."</blockquote>
-</div>`,
-      isPublished: true,
-      createdAt: '2026-07-01'
-    },
-    {
-      id: 'sizing-guide',
-      title: 'Ergonomic Sizing & Carrying Guide',
-      slug: 'sizing-guide',
-      body: `<div class="space-y-4">
-  <h3>Finding the Perfect Fit with Baby Dwelling USA</h3>
-  <p>All <strong>Baby Dwelling USA</strong> ergonomic wraps, slings, and carriers are structurally engineered to adjust effortlessly to all parent body types and growing infants. With our fully expandable shoulder straps, snug waistbands, and certified sliders, mastering babywearing takes less than 30 seconds.</p>
-  <h3>The Pediatric M-Position Rule</h3>
-  <p>Our carriers keep your baby's hips correctly aligned in the pediatric-approved <strong>M-Position</strong>: with knees slightly higher than their bottom. This healthy ergonomic placement supports natural spinal curves and actively prevents infant hip dysplasia.</p>
-</div>`,
-      isPublished: true,
-      createdAt: '2026-07-01'
-    }
-  ],
-
-  products: initialProducts,
-  signatureProduct: initialSignatureProduct,
-  reviews: initialReviews,
-  enableAmazonCheckout: true,
-  amazonCheckoutText: 'Checkout using Amazon',
-  enableWalmartCheckout: true,
-  walmartCheckoutText: 'Checkout using Wal-Mart',
-
-  // Image CDN & Optimization Settings
-  imgCdnMode: 'wsrv', // 'wsrv' | 'cloudinary' | 'imgix' | 'none'
-  cloudinaryCloudName: '',
-  imgixDomain: '',
-  imgQuality: 82,
-  imgAutoWebp: true,
-  imgLazyLoad: true,
-};
+import { siteContent } from './data/siteContent';
 
 export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>('home');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [currentPageSlug, setCurrentPageSlug] = useState<string>('about-us');
   const [selectedProductId, setSelectedProductId] = useState<string>('signature-heritage');
-
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = initAuth(
-      (user, token) => {
-        setGoogleToken(token);
-      },
-      () => {
-        setGoogleToken(null);
-      }
-    );
-    return () => unsubscribe();
-  }, []);
-
-  // Secure admin passcode auth states
-  const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
-  const [passcodeAttempt, setPasscodeAttempt] = useState('');
-  const [authError, setAuthError] = useState('');
-
-  // Shopify visual customization mode states
-  const [isCustomizingMode, setIsCustomizingMode] = useState(() => {
-    return localStorage.getItem('bd_customizing_mode') === 'true';
-  });
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [syncState, setSyncState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Dynamic Site Customizer Config State
-  const [siteConfig, setSiteConfig] = useState(() => {
-    const saved = localStorage.getItem('bd_site_config_v1');
-    return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
-  });
-
-  const [isDirtyState, setIsDirtyState] = useState(false);
-  const isSavingRef = useRef(false);
-  const pendingConfigRef = useRef<any>(null);
-
-  const isInitialMount = useRef(true);
-  const previousConfigRef = useRef(JSON.stringify(siteConfig));
-  const isConfigDirtyRef = useRef(false);
-
-  const handleUserConfigChange = (newConfig: any) => {
-    isConfigDirtyRef.current = true;
-    setIsDirtyState(true);
-    setSiteConfig(newConfig);
-  };
-
-  // Admin Session Login State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    return localStorage.getItem('bd_admin_logged_in') === 'true';
-  });
-
-  const handleAdminAuthSubmit = (e?: FormEvent) => {
-    if (e) e.preventDefault();
-    if (passcodeAttempt.trim() === 'admin') {
-      setIsAdminLoggedIn(true);
-      setIsAdminAuthModalOpen(false);
-      setPasscodeAttempt('');
-      setAuthError('');
-      triggerToast('🔓 Shopify Admin Authorized. Welcome to Visual Customizer!');
-    } else {
-      setAuthError('Invalid staff passcode. Please verify credentials.');
-    }
-  };
-
-  // Sync customizing mode
-  useEffect(() => {
-    localStorage.setItem('bd_customizing_mode', String(isCustomizingMode));
-  }, [isCustomizingMode]);
-
-  // Fetch site configuration from Express server on mount and synchronize via interval polling
-  useEffect(() => {
-    const fetchConfigFromServer = async () => {
-      try {
-        const response = await fetch(`/api/site-config?t=${Date.now()}`, {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.config) {
-            setSiteConfig(data.config);
-            localStorage.setItem('bd_site_config_v1', JSON.stringify(data.config));
-          }
-        }
-      } catch (err) {
-        console.warn('REST config fetch error:', err);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-
-    // 1. Initial fresh fetch on mount
-    fetchConfigFromServer();
-
-    // 2. Setup periodic polling (every 15 seconds) so changes made to Google Sheets update on the storefront automatically!
-    const interval = setInterval(() => {
-      // Only auto-update if the user is not in admin/customizer view to avoid overwriting their form changes
-      if (!isCustomizingMode && activeView !== 'admin') {
-        fetchConfigFromServer();
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [isCustomizingMode, activeView]);
-
-  // Enqueue a configuration to be saved
-  const triggerSaveConfig = (newConfig: any) => {
-    console.log("🎨 Editor Changed ↓");
-    console.log("✏️ Dirty State Updated");
-    isConfigDirtyRef.current = true;
-    setIsDirtyState(true);
-
-    pendingConfigRef.current = newConfig;
-    if (!isSavingRef.current) {
-      isSavingRef.current = true;
-      processSaveQueue();
-    }
-  };
-
-  const processSaveQueue = async () => {
-    while (pendingConfigRef.current !== null) {
-      const configToSave = pendingConfigRef.current;
-      // Reset pendingConfigRef immediately so we can detect any changes made while this write is in-progress
-      pendingConfigRef.current = null;
-
-      console.log("Preparing Payload for visual editor save...");
-
-      // Validation Check
-      console.log("Validation Started");
-      const requiredFields = [
-        'logoText', 'logoImage', 'heroTagline', 'heroTitle', 'heroSubtitle',
-        'heroImage', 'badge1Title', 'badge1Text', 'badge2Title', 'badge2Text',
-        'badge3Title', 'badge3Text', 'heroCta1Text', 'heroCta1Link',
-        'heroCta2Text', 'heroCta2Link', 'categories', 'navigation',
-        'pages', 'products', 'reviews', 'enableAmazonCheckout',
-        'amazonCheckoutText', 'enableWalmartCheckout', 'walmartCheckoutText'
-      ];
-
-      const missingFields: string[] = [];
-      const validatedPayload = { ...configToSave };
-
-      requiredFields.forEach(field => {
-        if (validatedPayload[field] === undefined || validatedPayload[field] === null) {
-          missingFields.push(field);
-          // Set standard fallback to satisfy database security rule validation
-          if (field.startsWith('enable')) {
-            validatedPayload[field] = false;
-          } else if (field === 'categories' || field === 'navigation' || field === 'pages' || field === 'products' || field === 'reviews') {
-            validatedPayload[field] = [];
-          } else {
-            validatedPayload[field] = '';
-          }
-        }
-      });
-
-      if (missingFields.length > 0) {
-        console.warn("⚠️ Validation: Fixed missing payload fields for rules alignment:", missingFields);
-      }
-      console.log("Validation Passed");
-
-      setSyncState('saving');
-      let success = false;
-      let finalConfig = validatedPayload;
-
-      console.log("Configuration Write Started");
-
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        const requestHeaders: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        };
-        if (googleToken) {
-          requestHeaders['Authorization'] = `Bearer ${googleToken}`;
-        }
-
-        const res = await fetch('/api/site-config', {
-          method: 'POST',
-          headers: requestHeaders,
-          body: JSON.stringify({ config: validatedPayload }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.success && data.config) {
-            finalConfig = data.config;
-
-            if (pendingConfigRef.current === null) {
-              setSiteConfig(finalConfig);
-              localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
-            }
-            success = true;
-            console.log("⚡ Configuration Saved successfully via REST API!");
-          }
-        }
-      } catch (err: any) {
-        console.warn('REST save error:', err);
-      }
-
-      if (success) {
-        // Only clear isDirtyState if there are no new pending changes!
-        if (pendingConfigRef.current === null) {
-          isConfigDirtyRef.current = false;
-          setIsDirtyState(false);
-          setSyncState('saved');
-          console.log("Editor State Updated ↓");
-          console.log("🧹 Dirty State Cleared ↓");
-          console.log("✅ Save Completed");
-          setTimeout(() => {
-            if (pendingConfigRef.current === null && !isSavingRef.current) {
-              setSyncState('idle');
-            }
-          }, 2500);
-        } else {
-          console.log("Keeping isDirtyState = true because a newer edit is pending in the queue.");
-        }
-      } else {
-        setSyncState('error');
-        triggerToast("❌ Failed to save changes to the database. Retrying...");
-        setTimeout(() => {
-          if (pendingConfigRef.current === null && !isSavingRef.current) {
-            setSyncState('idle');
-          }
-        }, 3500);
-      }
-    }
-
-    isSavingRef.current = false;
-  };
-
-  const saveConfigToBackend = async (newConfig: any) => {
-    triggerSaveConfig(newConfig);
-  };
-
-  // Debounce saving config to backend when siteConfig changes (only in Customizing Mode or Admin Mode)
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    if (!isCustomizingMode && activeView !== 'admin') {
-      previousConfigRef.current = JSON.stringify(siteConfig);
-      return;
-    }
-
-    // Only auto-save if the user has actually made an edit (isConfigDirtyRef is true)
-    if (!isConfigDirtyRef.current) {
-      previousConfigRef.current = JSON.stringify(siteConfig);
-      return;
-    }
-
-    const currentStr = JSON.stringify(siteConfig);
-    if (currentStr === previousConfigRef.current) {
-      return;
-    }
-
-    // Save to localStorage immediately so user's active progress is safe locally
-    localStorage.setItem('bd_site_config_v1', currentStr);
-    previousConfigRef.current = currentStr;
-
-    // Set a debounce timer to save to backend in 800ms to avoid flooding backend/Firestore
-    const timer = setTimeout(() => {
-      console.log('Auto-saving updated customizer settings to live backend (debounced)...');
-      triggerSaveConfig(siteConfig);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [siteConfig, isCustomizingMode, activeView]);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const handleSaveConfig = async () => {
-    console.log("Save Button Clicked");
-    console.log("Save function entered");
-
-    // Save locally immediately
-    localStorage.setItem('bd_site_config_v1', JSON.stringify(siteConfig));
-
-    // Trigger and wait for queue execution
-    triggerSaveConfig(siteConfig);
-    triggerToast('✨ Settings saved successfully to live storefront!');
-  };
-
-  const handleBulkUpdateProducts = async (updatedProductsList: Product[]) => {
-    console.log("Bulk Products Update requested...");
-    const updatedConfig = { ...siteConfig, products: updatedProductsList };
-    setSiteConfig(updatedConfig);
-    localStorage.setItem('bd_site_config_v1', JSON.stringify(updatedConfig));
-
-    // Trigger our unified, queue-safe save system!
-    triggerSaveConfig(updatedConfig);
-    triggerToast('✨ Bulk prices and availability updated successfully!');
-  };
-
-  const handleResetConfig = () => {
-    if (window.confirm('Are you sure you want to reset all site configuration to default values? Any unsaved edits will be lost.')) {
-      isConfigDirtyRef.current = true;
-      setSiteConfig(DEFAULT_CONFIG);
-      localStorage.setItem('bd_site_config_v1', JSON.stringify(DEFAULT_CONFIG));
-      saveConfigToBackend(DEFAULT_CONFIG);
-      triggerToast('🔄 Configuration reset to factory defaults.');
-    }
-  };
-
-  // Sync Admin state
-  useEffect(() => {
-    localStorage.setItem('bd_admin_logged_in', String(isAdminLoggedIn));
-    if (!isAdminLoggedIn) {
-      setIsCustomizingMode(false);
-    }
-  }, [isAdminLoggedIn]);
+  // Single Source of Truth
+  const siteConfig = siteContent;
 
   // Basket Cart State
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -477,8 +47,10 @@ export default function App() {
       if (matchIndex > -1) {
         const copy = [...prev];
         copy[matchIndex].quantity += 1;
+        triggerToast(`🛒 Quantity updated in cart for ${product.title}`);
         return copy;
       } else {
+        triggerToast(`✨ Added ${product.title} to your cart`);
         return [...prev, { product, quantity: 1, selectedColor: color }];
       }
     });
@@ -494,10 +66,12 @@ export default function App() {
 
   const handleRemoveItem = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
+    triggerToast('🗑️ Item removed from cart');
   };
 
   const handleClearCart = () => {
     setCart([]);
+    triggerToast('🗑️ Cart cleared');
   };
 
   const handleNavigateToShop = (category: string = 'all') => {
@@ -512,257 +86,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isInitialLoading) {
-    return (
-      <div className="fixed inset-0 bg-[#F9F6F0] flex flex-col items-center justify-center z-[9999] font-sans">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex flex-col items-center max-w-md text-center p-8 rounded-3xl"
-        >
-          {/* Brand Logo/Header */}
-          <div className="mb-8">
-            <span className="font-sans text-[11px] font-bold text-terracotta tracking-widest uppercase block mb-2">
-              Baby Dwelling USA
-            </span>
-            <h1 className="font-serif text-3xl font-semibold text-charcoal tracking-tight">
-              Organic Comfort
-            </h1>
-          </div>
-
-          {/* Premium Looping Circular Spinner */}
-          <div className="relative w-16 h-16 mb-8 flex items-center justify-center">
-            {/* Ambient outer ring pulsing */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-sand/10"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            />
-            {/* Spinning gradient ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-t-2 border-r-2 border-terracotta"
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-            />
-            <span className="text-xs text-terracotta font-serif">BD</span>
-          </div>
-
-          {/* Pulsing loading subtitle */}
-          <motion.p
-            className="text-xs text-charcoal/60 font-medium tracking-wide animate-pulse"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-          >
-            Synchronizing Storefront with Google Sheets...
-          </motion.p>
-
-          <div className="mt-6 flex gap-2 items-center text-[10px] text-[#A69F95] font-mono bg-[#EFECE6] px-3 py-1 rounded-full">
-            <span>🔌 headless-cms v2.0</span>
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-            <span>sheets-connected</span>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (isCustomizingMode) {
-    return (
-      <div className="fixed inset-0 w-screen h-screen bg-[#E5E5E5] flex overflow-hidden font-sans z-[1000]">
-        {/* Custom Toast Alert */}
-        {toastMessage && (
-          <div className="fixed top-5 right-5 bg-charcoal text-white px-5 py-3 rounded-2xl shadow-xl z-[9999] flex items-center gap-2 border border-sand/20 animate-fadeIn font-semibold text-xs">
-            <span className="w-2 h-2 rounded-full bg-[#008060]"></span>
-            <span>{toastMessage}</span>
-          </div>
-        )}
-
-        {/* Left Side: Shopify Sidebar Customizer Panel */}
-        <div className="w-[380px] md:w-[400px] h-full flex-shrink-0 z-20 flex flex-col overflow-hidden">
-          <ShopifyCustomizer
-            siteConfig={siteConfig}
-            onChangeConfig={handleUserConfigChange}
-            onSave={handleSaveConfig}
-            onReset={handleResetConfig}
-            onClose={() => setIsCustomizingMode(false)}
-            activePreviewView={activeView}
-            onChangePreviewView={setActiveView}
-            previewDevice={previewDevice}
-            onChangePreviewDevice={setPreviewDevice}
-            currentPageSlug={currentPageSlug}
-            onChangePageSlug={setCurrentPageSlug}
-            syncState={syncState}
-            isDirty={isDirtyState}
-          />
-        </div>
-
-        {/* Right Side: Storefront Preview Container */}
-        <div className="flex-grow h-full bg-[#E1E3E5] flex flex-col items-center justify-center p-4 overflow-hidden relative">
-
-          {/* Preview Topbar Bezel with dimensions indicator */}
-          <div className="absolute top-3 left-4 right-4 flex items-center justify-between text-[11px] font-sans font-bold text-gray-500/80">
-            <span>PREVIEWING: {activeView.toUpperCase()} PAGE</span>
-            <span className="font-mono uppercase bg-gray-200/60 px-2 py-0.5 rounded-full">
-              {previewDevice === 'mobile' ? '390px x 740px (Mobile)' : previewDevice === 'tablet' ? '768px (Tablet)' : 'Full Responsive Desktop'}
-            </span>
-          </div>
-
-          {/* Device Frame Viewport Container */}
-          <div
-            className={`transition-all duration-300 ease-out bg-warm-white flex flex-col shadow-2xl overflow-hidden ${previewDevice === 'mobile'
-                ? 'w-[390px] h-[740px] rounded-[36px] border-[10px] border-charcoal/95 relative'
-                : previewDevice === 'tablet'
-                  ? 'w-[768px] h-[90%] rounded-3xl border-8 border-charcoal/90 relative'
-                  : 'w-full h-[95%] rounded-xl'
-              }`}
-          >
-            {previewDevice === 'mobile' && (
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-4 bg-charcoal rounded-full z-50 flex items-center justify-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-charcoal/90 border border-gray-600"></span>
-              </div>
-            )}
-
-            {/* Embedded Screen scrollable content */}
-            <div className="flex-grow overflow-y-auto flex flex-col relative" id="storefront-preview-viewport">
-              {/* Navbar inside preview */}
-              <Navbar
-                activeView={activeView}
-                setActiveView={setActiveView}
-                cart={cart}
-                setIsCartOpen={setIsCartOpen}
-                isAdminLoggedIn={isAdminLoggedIn}
-                setIsAdminLoggedIn={setIsAdminLoggedIn}
-                siteConfig={siteConfig}
-                currentPageSlug={currentPageSlug}
-                setCurrentPageSlug={setCurrentPageSlug}
-                onNavigateToShop={handleNavigateToShop}
-              />
-
-              {/* Main Content inside preview */}
-              <div className="flex-grow">
-                <AnimatePresence mode="wait">
-                  {activeView === 'home' && (
-                    <motion.div
-                      key="home"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <HomeView
-                        onNavigateToShop={handleNavigateToShop}
-                        onNavigateToDetail={handleNavigateToDetail}
-                        siteConfig={siteConfig}
-                        setCurrentPageSlug={setCurrentPageSlug}
-                        setActiveView={setActiveView}
-                        isCustomizing={true}
-                      />
-                    </motion.div>
-                  )}
-
-                  {activeView === 'shop' && (
-                    <motion.div
-                      key="shop"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pt-12"
-                    >
-                      <ShopView
-                        initialCategoryFilter={categoryFilter}
-                        onViewProduct={handleNavigateToDetail}
-                        onAddToCart={handleAddToCart}
-                        siteConfig={siteConfig}
-                      />
-                    </motion.div>
-                  )}
-
-                  {activeView === 'detail' && (
-                    <motion.div
-                      key="detail"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pt-12"
-                    >
-                      <ProductDetailView
-                        onAddToCart={handleAddToCart}
-                        siteConfig={siteConfig}
-                        onUpdateConfig={(updated) => {
-                          handleUserConfigChange(updated);
-                          localStorage.setItem('bd_site_config_v1', JSON.stringify(updated));
-                        }}
-                      />
-                    </motion.div>
-                  )}
-
-                  {activeView === 'page' && (
-                    <motion.div
-                      key="page"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pt-12"
-                    >
-                      <CustomPageView
-                        pageSlug={currentPageSlug}
-                        siteConfig={siteConfig}
-                        onNavigateHome={() => {
-                          setActiveView('home');
-                        }}
-                        onNavigateToShop={() => handleNavigateToShop('all')}
-                      />
-                    </motion.div>
-                  )}
-
-                  {activeView === 'seo' && (
-                    <motion.div
-                      key="seo"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pt-12"
-                    >
-                      <SeoView
-                        siteConfig={siteConfig}
-                        onNavigateToView={(view) => setActiveView(view)}
-                        setCurrentPageSlug={setCurrentPageSlug}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Footer inside preview */}
-              <Footer
-                setActiveView={setActiveView}
-                siteConfig={siteConfig}
-                currentPageSlug={currentPageSlug}
-                setCurrentPageSlug={setCurrentPageSlug}
-                onNavigateToShop={handleNavigateToShop}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Cart Drawer inside preview */}
-        <CartDrawer
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          cart={cart}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onClearCart={handleClearCart}
-          siteConfig={siteConfig}
-        />
-      </div>
-    );
-  }
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    const timer = setTimeout(() => setToastMessage(null), 3000);
+    return () => clearTimeout(timer);
+  };
 
   return (
     <div className="min-h-screen bg-warm-white text-charcoal flex flex-col font-sans relative">
@@ -780,8 +108,6 @@ export default function App() {
         setActiveView={setActiveView}
         cart={cart}
         setIsCartOpen={setIsCartOpen}
-        isAdminLoggedIn={isAdminLoggedIn}
-        setIsAdminLoggedIn={setIsAdminLoggedIn}
         siteConfig={siteConfig}
         currentPageSlug={currentPageSlug}
         setCurrentPageSlug={setCurrentPageSlug}
@@ -840,10 +166,6 @@ export default function App() {
                 productId={selectedProductId}
                 onAddToCart={handleAddToCart}
                 siteConfig={siteConfig}
-                onUpdateConfig={(updated) => {
-                  handleUserConfigChange(updated);
-                  localStorage.setItem('bd_site_config_v1', JSON.stringify(updated));
-                }}
               />
             </motion.div>
           )}
@@ -888,113 +210,17 @@ export default function App() {
               />
             </motion.div>
           )}
-
-          {activeView === 'admin' && (
-            isAdminLoggedIn ? (
-              <motion.div
-                key="admin"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-              >
-                <AdminView
-                  siteConfig={siteConfig}
-                  setSiteConfig={handleUserConfigChange}
-                  onNavigateHome={() => setActiveView('home')}
-                  onNavigateToView={(view, subTarget) => {
-                    setActiveView(view);
-                    if (subTarget) setCurrentPageSlug(subTarget);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  setCurrentPageSlug={setCurrentPageSlug}
-                  onLogout={() => {
-                    setIsAdminLoggedIn(false);
-                    setActiveView('home');
-                    setIsCustomizingMode(false);
-                    triggerToast('👋 Logged out from Shopify Admin successfully.');
-                  }}
-                  syncState={syncState}
-                  onSave={handleSaveConfig}
-                  onBulkUpdateProducts={handleBulkUpdateProducts}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="admin-login"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="pt-24 pb-20 flex justify-center px-4"
-              >
-                <div className="w-full max-w-md bg-white dark:bg-charcoal p-8 rounded-3xl border border-sand/20 shadow-2xl flex flex-col gap-6">
-                  <div className="text-center flex flex-col gap-2">
-                    <span className="font-sans text-[10px] font-bold text-terracotta dark:text-sand tracking-widest uppercase">
-                      Shopify Partner Node
-                    </span>
-                    <h2 className="font-serif text-2xl font-bold text-charcoal dark:text-warm-white">
-                      Staff Administration
-                    </h2>
-                    <p className="font-sans text-xs text-charcoal/50 dark:text-warm-white/50 leading-relaxed">
-                      Enter staff credentials to manage listings, reviews, and storefront configuration parameters.
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleAdminAuthSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-sans font-bold text-charcoal/70 dark:text-warm-white/70 uppercase tracking-wider">
-                        Staff Passcode
-                      </label>
-                      <input
-                        type="password"
-                        value={passcodeAttempt}
-                        onChange={(e) => {
-                          setPasscodeAttempt(e.target.value);
-                          setAuthError('');
-                        }}
-                        placeholder="••••••••"
-                        className="w-full border border-sand/30 dark:border-white/10 rounded-xl px-4 py-3 text-xs bg-light-beige/25 dark:bg-white/5 outline-none font-sans text-charcoal dark:text-warm-white focus:border-[#008060] dark:focus:border-sand transition-all"
-                        required
-                        autoFocus
-                      />
-                      {authError && (
-                        <span className="text-[10px] font-semibold text-terracotta mt-1 animate-pulse">
-                          {authError}
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 bg-charcoal text-warm-white hover:opacity-95 dark:bg-warm-white dark:text-charcoal font-sans text-xs font-semibold tracking-wider uppercase rounded-xl shadow-md transition-all active:scale-98 cursor-pointer mt-2"
-                    >
-                      Authenticate Admin Staff
-                    </button>
-                  </form>
-
-                  <div className="bg-light-beige/30 dark:bg-white/5 p-4 rounded-2xl border border-sand/15 text-center">
-                    <p className="text-[11px] font-sans text-charcoal/60 dark:text-warm-white/60 leading-normal">
-                      🗝️ Demo Passcode: <span className="font-mono font-bold text-charcoal dark:text-warm-white bg-sand/30 px-1.5 py-0.5 rounded">admin</span>
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          )}
         </AnimatePresence>
       </main>
 
-      {/* Unified Footing Section - Hidden in Shopify admin view */}
-      {activeView !== 'admin' && (
-        <Footer
-          setActiveView={setActiveView}
-          siteConfig={siteConfig}
-          currentPageSlug={currentPageSlug}
-          setCurrentPageSlug={setCurrentPageSlug}
-          onNavigateToShop={handleNavigateToShop}
-        />
-      )}
+      {/* Unified Footing Section */}
+      <Footer
+        setActiveView={setActiveView}
+        siteConfig={siteConfig}
+        currentPageSlug={currentPageSlug}
+        setCurrentPageSlug={setCurrentPageSlug}
+        onNavigateToShop={handleNavigateToShop}
+      />
 
       {/* Cart Drawer */}
       <CartDrawer
@@ -1006,90 +232,6 @@ export default function App() {
         onClearCart={handleClearCart}
         siteConfig={siteConfig}
       />
-
-      {/* Shopify Customize Floating Launcher Bar */}
-      {isAdminLoggedIn && (
-        <div className="fixed bottom-6 right-6 z-[999] flex items-center gap-2.5">
-          <button
-            onClick={() => setIsCustomizingMode(true)}
-            className="bg-[#008060] hover:bg-[#006e52] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-xs font-bold transition-all hover:scale-105 active:scale-95 border border-white/20 cursor-pointer"
-          >
-            <Settings size={14} className="animate-spin-slow" />
-            <span>Open Shopify Visual Customizer</span>
-          </button>
-        </div>
-      )}
-
-      {/* Secure staff passcode modal overlay */}
-      <AnimatePresence>
-        {isAdminAuthModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-charcoal/80 backdrop-blur-sm z-[10000] flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-sm bg-white dark:bg-charcoal rounded-3xl border border-sand/20 p-8 shadow-2xl flex flex-col gap-6 animate-fadeIn"
-            >
-              <div className="text-center flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase font-bold text-terracotta dark:text-sand tracking-widest">Shopify Custodian Gate</span>
-                <h3 className="font-serif text-xl font-bold text-charcoal dark:text-warm-white">Enter Passcode</h3>
-                <p className="text-xs text-charcoal/50 dark:text-warm-white/50">Only authorized team members can edit layout elements.</p>
-              </div>
-
-              <form onSubmit={handleAdminAuthSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <input
-                    type="password"
-                    value={passcodeAttempt}
-                    onChange={(e) => {
-                      setPasscodeAttempt(e.target.value);
-                      setAuthError('');
-                    }}
-                    placeholder="Enter Staff Passcode"
-                    className="w-full px-4 py-3 text-xs border border-sand/30 dark:border-white/10 rounded-xl bg-light-beige/25 dark:bg-white/5 text-charcoal dark:text-warm-white outline-none focus:border-[#008060]"
-                    required
-                    autoFocus
-                  />
-                  {authError && (
-                    <span className="text-[10px] font-semibold text-terracotta mt-1 animate-pulse">
-                      {authError}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAdminAuthModalOpen(false);
-                      setPasscodeAttempt('');
-                      setAuthError('');
-                    }}
-                    className="flex-1 py-3 border border-sand/30 rounded-xl text-xs font-semibold text-charcoal/70 dark:text-warm-white/70 hover:bg-light-beige/30 transition-all cursor-pointer text-center"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-3 bg-[#008060] text-white rounded-xl text-xs font-bold shadow-md hover:bg-[#006e52] transition-all cursor-pointer"
-                  >
-                    Authorize
-                  </button>
-                </div>
-              </form>
-
-              <div className="text-center text-[10px] text-charcoal/40 dark:text-warm-white/40 border-t border-sand/15 pt-3">
-                🗝️ Staff Demo Passcode: <span className="font-mono font-bold bg-sand/30 px-1 rounded text-charcoal dark:text-warm-white">admin</span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

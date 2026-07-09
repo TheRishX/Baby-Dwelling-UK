@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { Star, Heart, ArrowUpRight } from 'lucide-react';
 import { Product } from '../types';
 import { useState } from 'react';
-import OptimizedImage from './customizer/OptimizedImage';
+import OptimizedImage from './OptimizedImage';
 
 interface ProductCardProps {
   product: Product;

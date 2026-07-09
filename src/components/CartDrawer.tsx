@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Plus, Minus, ShieldCheck, ShoppingBag, Truck, ExternalLink } from 'lucide-react';
 import { CartItem } from '../types';
-import OptimizedImage from './customizer/OptimizedImage';
+import OptimizedImage from './OptimizedImage';
 
 interface CartDrawerProps {
   isOpen: boolean;

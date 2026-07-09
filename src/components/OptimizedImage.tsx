@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useMemo } from 'react';
-import { optimizeImageUrl } from '../../utils/imageOptimizer';
+import { optimizeImageUrl } from '../utils/imageOptimizer';
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -34,20 +34,7 @@ const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(({
 
   // Retrieve/resolve the site configuration safely
   const resolvedConfig = useMemo(() => {
-    let activeConfig = siteConfig;
-    if (!activeConfig || Object.keys(activeConfig).length === 0) {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = window.localStorage.getItem('bd_site_config_v1');
-          if (saved) {
-            return JSON.parse(saved);
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-    return activeConfig || {};
+    return siteConfig || {};
   }, [siteConfig]);
 
   // Extract primitive fields to prevent reference changes from triggering unnecessary updates/re-renders

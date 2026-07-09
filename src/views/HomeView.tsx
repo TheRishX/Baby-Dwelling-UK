@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles, ShieldCheck, HeartHandshake, Eye } from 'lucide-react';
 import ZenBackground from '../components/ZenBackground';
-import OptimizedImage from '../components/customizer/OptimizedImage';
+import OptimizedImage from '../components/OptimizedImage';
 
 interface HomeViewProps {
   onNavigateToShop: (category?: string) => void;

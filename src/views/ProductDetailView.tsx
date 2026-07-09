@@ -4,7 +4,7 @@ import { Star, ShieldCheck, Heart, ArrowUpRight, Scale, Baby, Leaf, Compass, Scr
 import { Product } from '../types';
 import ErgonomicVisualizer from '../components/ErgonomicVisualizer';
 import ReviewSection from '../components/ReviewSection';
-import OptimizedImage from '../components/customizer/OptimizedImage';
+import OptimizedImage from '../components/OptimizedImage';
 
 const MotionOptimizedImage = motion.create(OptimizedImage);
 
