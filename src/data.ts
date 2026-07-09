@@ -136,11 +136,18 @@ export const products: Product[] = [
     originalPrice: 189.99,
     rating: 5,
     reviewsCount: 112,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCYgJvLuf0Zt1qB223y7Fe29M7UVopEQBrX5A61jrHnarvmG5pE7sIdh8WGCSDyZk7cwW_btP6uvLH2FOzTNaJKGOX6VcWm1FUI--gVXSylk0VtIt3pk40ap2fLbhdwA25hXgQVyp_3cqM2UGG1KurtF8rWTRGwLBt9Tvml6Yr6aJorH_Yi8iGu4jNA8RkiL_irDOsIwNyHrlpOhH93LObOdB24gLGzVZdsop8of4E9l2YBNMq1_Ocdaj7uww4ywAn7FSBEV-ZqXMI',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605230/2_fo8ygk.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCYgJvLuf0Zt1qB223y7Fe29M7UVopEQBrX5A61jrHnarvmG5pE7sIdh8WGCSDyZk7cwW_btP6uvLH2FOzTNaJKGOX6VcWm1FUI--gVXSylk0VtIt3pk40ap2fLbhdwA25hXgQVyp_3cqM2UGG1KurtF8rWTRGwLBt9Tvml6Yr6aJorH_Yi8iGu4jNA8RkiL_irDOsIwNyHrlpOhH93LObOdB24gLGzVZdsop8of4E9l2YBNMq1_Ocdaj7uww4ywAn7FSBEV-ZqXMI',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAO7QnYkRNpbxSypcRESvTyvVK4rFPqh9BT3mC3WChvyHSPlYNY0lqGM9hw-G9WktZRmzqyViVoDKW_NDs7rripCZrfhMsUzaEbXYTgyiThPnW3oL-M5hCS3Inj5VCJNOYRjmDFOw2HAhQXmLUzql1TfhQVuL8qjKc467NBrfEqwrJ6SAXPWvvP6DT3pNSO6f5JInnzJTnjH6CW3e7hBzEhP08J8-wPRoIR4kkQZa_WhFFYs52ReUzoSPoFcuYWn3sneqwG-dRo8BE'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605230/2_fo8ygk.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605234/3_fpzcp7.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605232/4_p6w0p8.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605231/5_czxwgx.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605237/6_szj5mf.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605234/7_wrbzh8.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605235/9_pvbjbt.webp'
     ],
+
+
     category: 'carriers',
     badge: 'BREATHABLE',
     tagline: 'Feather-soft support with premium airflow for longer, cooler carry sessions.',
@@ -383,11 +390,17 @@ export const products: Product[] = [
     originalPrice: 199.99,
     rating: 5,
     reviewsCount: 76,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606154/2_tbu5om.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuC2Piw4J1xyoTlo5PGRSLjIISiFjyiPgMDlCYZn_jWcfZfK4mjePiBtpaOlkUdVfFc2CL3Jk66_BDlQQARD9aBAorecrOG_Q_kRZ1LFZFmrLdIw1YkOnGkS05K6PEJakq1rPQExw_6GbIH_ckRcEU0OyoDRTRHU6HYq7jiK4aR-b79qEgiWph_gECwsAsaLNc9ljjOGevOxt78Ds34LFBNSnDT6wop79rqU0QB28I72tqUOO_9dJuIWJbL1s9TkdX8M4pWH7l0eOGI'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606154/2_tbu5om.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606154/01_zmmylp.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606157/3_yvzgwp.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606156/5_jk3hdm.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606162/7_bwp734.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606161/4_noaqlg.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606158/6_k3xc7d.webp'
     ],
+
     category: 'carriers',
     badge: 'ADVENTURE READY',
     tagline: 'Built for the outdoors with reinforced straps and rugged comfort.',
@@ -503,7 +516,7 @@ export const products: Product[] = [
     originalPrice: 219.99,
     rating: 5,
     reviewsCount: 64,
-    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602530/1main_qvbcb9.webp',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783603811/Combo_front_black_and_white_pqqv9n.webp',
     images: [
       'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602530/1main_qvbcb9.webp',
       'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602531/2_bm3awb.webp',
@@ -513,8 +526,10 @@ export const products: Product[] = [
       'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602510/6_jozhlb.webp',
       'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602533/7_igcaqd.webp',
       'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602532/8_fe2izj.jpg',
-      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602531/9_dmh8s2.webp'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783602531/9_dmh8s2.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783603811/last-comboblackandwhite_ckdsdj.webp'
     ],
+
 
     category: 'combos',
     badge: 'BUNDLE',
@@ -628,10 +643,19 @@ export const products: Product[] = [
     originalPrice: 209.99,
     rating: 5,
     reviewsCount: 72,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605230/1_h6zwkj.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605230/1_h6zwkj.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605230/2_fo8ygk.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605234/3_fpzcp7.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605232/4_p6w0p8.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605231/5_czxwgx.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605237/6_szj5mf.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605234/7_wrbzh8.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605238/8_qkkkjl.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783605235/9_pvbjbt.webp'
     ],
+
     category: 'combos',
     badge: 'KIT',
     tagline: 'A curated starter set for new parents, complete with essentials and style.',
@@ -743,10 +767,19 @@ export const products: Product[] = [
     originalPrice: 169.99,
     rating: 5,
     reviewsCount: 53,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAO7QnYkRNpbxSypcRESvTyvVK4rFPqh9BT3mC3WChvyHSPlYNY0lqGM9hw-G9WktZRmzqyViVoDKW_NDs7rripCZrfhMsUzaEbXYTgyiThPnW3oL-M5hCS3Inj5VCJNOYRjmDFOw2HAhQXmLUzql1TfhQVuL8qjKc467NBrfEqwrJ6SAXPWvvP6DT3pNSO6f5JInnzJTnjH6CW3e7hBzEhP08J8-wPRoIR4kkQZa_WhFFYs52ReUzoSPoFcuYWn3sneqwG-dRo8BE',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606153/1_xk9fuc.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAO7QnYkRNpbxSypcRESvTyvVK4rFPqh9BT3mC3WChvyHSPlYNY0lqGM9hw-G9WktZRmzqyViVoDKW_NDs7rripCZrfhMsUzaEbXYTgyiThPnW3oL-M5hCS3Inj5VCJNOYRjmDFOw2HAhQXmLUzql1TfhQVuL8qjKc467NBrfEqwrJ6SAXPWvvP6DT3pNSO6f5JInnzJTnjH6CW3e7hBzEhP08J8-wPRoIR4kkQZa_WhFFYs52ReUzoSPoFcuYWn3sneqwG-dRo8BE'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606153/1_xk9fuc.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606154/2_tbu5om.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606154/01_zmmylp.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606157/3_yvzgwp.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606156/5_jk3hdm.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606162/7_bwp734.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606161/4_noaqlg.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606158/6_k3xc7d.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783606160/combolast_mbmdf3.webp'
     ],
+
     category: 'combos',
     badge: 'NIGHTLY',
     tagline: 'A dreamy bundle for soft sleep and quiet comfort on the go.',
