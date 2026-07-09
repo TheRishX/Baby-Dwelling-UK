@@ -16,6 +16,15 @@ export interface Product {
   colors?: string[];
   specs?: Record<string, string>;
   inStock?: boolean;
+  keyBenefits?: string[];
+  features?: string[];
+  whyParentsLoveIt?: string[];
+  trustSafety?: Record<string, string>;
+  whatsIncluded?: string[];
+  productHighlights?: string[];
+  usageInstructions?: string[];
+  washingInstructions?: string[];
+  faqs?: { question: string; answer: string }[];
 }
 
 export interface Review {

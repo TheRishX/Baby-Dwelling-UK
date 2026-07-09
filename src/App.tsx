@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// @ts-ignore: allow missing react types in development environment
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, CartItem, ActiveView } from './types';
 import Navbar from './components/Navbar';
@@ -42,8 +43,8 @@ export default function App() {
 
   // Cart operations
   const handleAddToCart = (product: Product, color?: string) => {
-    setCart((prev) => {
-      const matchIndex = prev.findIndex((item) => item.product.id === product.id);
+    setCart((prev: CartItem[]) => {
+      const matchIndex = prev.findIndex((item: CartItem) => item.product.id === product.id);
       if (matchIndex > -1) {
         const copy = [...prev];
         copy[matchIndex].quantity += 1;
@@ -57,15 +58,15 @@ export default function App() {
   };
 
   const handleUpdateQuantity = (productId: string, quantity: number) => {
-    setCart((prev) =>
+    setCart((prev: CartItem[]) =>
       prev
-        .map((item) => (item.product.id === productId ? { ...item, quantity } : item))
-        .filter((item) => item.quantity > 0)
+        .map((item: CartItem) => (item.product.id === productId ? { ...item, quantity } : item))
+        .filter((item: CartItem) => item.quantity > 0)
     );
   };
 
   const handleRemoveItem = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+    setCart((prev: CartItem[]) => prev.filter((item: CartItem) => item.product.id !== productId));
     triggerToast('🗑️ Item removed from cart');
   };
 
