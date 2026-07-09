@@ -24,54 +24,54 @@ const DEFAULT_CONFIG = {
   heroTitle: 'Breathe Easy.<br />Bond Deeply.',
   heroSubtitle: 'Welcome to Baby Dwelling USA. Experience premium ergonomic comfort with our pediatric-approved, certified hip-healthy baby carriers, ring slings, and wraps. Artfully woven from 100% natural organic fabrics.',
   heroImage: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783527014/IMG_3198_qpnsv4.avif',
-  
+
   badge1Title: 'Ergonomically Certified',
   badge1Text: 'Healthy hip & spine developmental support.',
   badge2Title: 'Pure Premium Materials',
   badge2Text: 'Breathable organic linen & combed hemp weaves.',
   badge3Title: 'Carbon Neutral Delivery',
   badge3Text: 'Free UK shipping on orders over £50.',
-  
+
   heroCta1Text: 'Shop Collection',
   heroCta1Link: 'shop',
   heroCta2Text: 'Signature Heritage',
   heroCta2Link: 'detail',
-  
+
   categories: [
     { id: 'all', name: 'All Products', subtitle: 'All Collections' },
-    { 
-      id: 'carriers', 
-      name: 'Carriers', 
-      subtitle: '0 - 48 Months', 
-      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat1_k3davh.avif' 
+    {
+      id: 'carriers',
+      name: 'Carriers',
+      subtitle: '0 - 48 Months',
+      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat1_k3davh.avif'
     },
-    { 
-      id: 'pouchesX', 
-      name: 'Pouches', 
-      subtitle: '0 - 12 Months', 
-      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat2_k3davh.avif' 
+    {
+      id: 'pouchesX',
+      name: 'Pouches',
+      subtitle: '0 - 12 Months',
+      image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783531386/cat2_k3davh.avif'
     },
-    { 
-      id: 'combos', 
-      name: 'Combos', 
-      subtitle: 'Complete Sets', 
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC2Piw4J1xyoTlo5PGRSLjIISiFjyiPgMDlCYZn_jWcfZfK4mjePiBtpaOlkUdVfFc2CL3Jk66_BDlQQARD9aBAorecrOG_Q_kRZ1LFZFmrLdIw1YkOnGkS05K6PEJakq1rPQExw_6GbIH_ckRcEU0OyoDRTRHU6HYq7jiK4aR-b79qEgiWph_gECwsAsaLNc9ljjOGevOxt78Ds34LFBNSnDT6wop79rqU0QB28I72tqUOO_9dJuIWJbL1s9TkdX8M4pWH7l0eOGI' 
+    {
+      id: 'combos',
+      name: 'Combos',
+      subtitle: 'Complete Sets',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC2Piw4J1xyoTlo5PGRSLjIISiFjyiPgMDlCYZn_jWcfZfK4mjePiBtpaOlkUdVfFc2CL3Jk66_BDlQQARD9aBAorecrOG_Q_kRZ1LFZFmrLdIw1YkOnGkS05K6PEJakq1rPQExw_6GbIH_ckRcEU0OyoDRTRHU6HYq7jiK4aR-b79qEgiWph_gECwsAsaLNc9ljjOGevOxt78Ds34LFBNSnDT6wop79rqU0QB28I72tqUOO_9dJuIWJbL1s9TkdX8M4pWH7l0eOGI'
     },
-    { 
-      id: 'accessories', 
-      name: 'Accessories', 
-      subtitle: 'Support Essentials', 
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90' 
+    {
+      id: 'accessories',
+      name: 'Accessories',
+      subtitle: 'Support Essentials',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
     }
   ],
-  
+
   navigation: [
     { label: 'Our Story', target: 'home' },
     { label: 'Shop All', target: 'shop' },
     { label: 'Signature Heritage', target: 'detail' },
     { label: 'Sizing Help', target: 'page:sizing-guide' }
   ],
-  
+
   pages: [
     {
       id: 'about-us',
@@ -100,7 +100,7 @@ const DEFAULT_CONFIG = {
       createdAt: '2026-07-01'
     }
   ],
-  
+
   products: initialProducts,
   signatureProduct: initialSignatureProduct,
   reviews: initialReviews,
@@ -108,7 +108,7 @@ const DEFAULT_CONFIG = {
   amazonCheckoutText: 'Checkout using Amazon',
   enableWalmartCheckout: true,
   walmartCheckoutText: 'Checkout using Wal-Mart',
-  
+
   // Image CDN & Optimization Settings
   imgCdnMode: 'wsrv', // 'wsrv' | 'cloudinary' | 'imgix' | 'none'
   cloudinaryCloudName: '',
@@ -240,7 +240,7 @@ export default function App() {
     console.log("✏️ Dirty State Updated");
     isConfigDirtyRef.current = true;
     setIsDirtyState(true);
-    
+
     pendingConfigRef.current = newConfig;
     if (!isSavingRef.current) {
       isSavingRef.current = true;
@@ -255,15 +255,15 @@ export default function App() {
       pendingConfigRef.current = null;
 
       console.log("Preparing Payload for visual editor save...");
-      
+
       // Validation Check
       console.log("Validation Started");
       const requiredFields = [
-        'logoText', 'logoImage', 'heroTagline', 'heroTitle', 'heroSubtitle', 
-        'heroImage', 'badge1Title', 'badge1Text', 'badge2Title', 'badge2Text', 
-        'badge3Title', 'badge3Text', 'heroCta1Text', 'heroCta1Link', 
-        'heroCta2Text', 'heroCta2Link', 'categories', 'navigation', 
-        'pages', 'products', 'reviews', 'enableAmazonCheckout', 
+        'logoText', 'logoImage', 'heroTagline', 'heroTitle', 'heroSubtitle',
+        'heroImage', 'badge1Title', 'badge1Text', 'badge2Title', 'badge2Text',
+        'badge3Title', 'badge3Text', 'heroCta1Text', 'heroCta1Link',
+        'heroCta2Text', 'heroCta2Link', 'categories', 'navigation',
+        'pages', 'products', 'reviews', 'enableAmazonCheckout',
         'amazonCheckoutText', 'enableWalmartCheckout', 'walmartCheckoutText'
       ];
 
@@ -321,7 +321,7 @@ export default function App() {
           const data = await res.json();
           if (data && data.success && data.config) {
             finalConfig = data.config;
-            
+
             if (pendingConfigRef.current === null) {
               setSiteConfig(finalConfig);
               localStorage.setItem('bd_site_config_v1', JSON.stringify(finalConfig));
@@ -413,10 +413,10 @@ export default function App() {
   const handleSaveConfig = async () => {
     console.log("Save Button Clicked");
     console.log("Save function entered");
-    
+
     // Save locally immediately
     localStorage.setItem('bd_site_config_v1', JSON.stringify(siteConfig));
-    
+
     // Trigger and wait for queue execution
     triggerSaveConfig(siteConfig);
     triggerToast('✨ Settings saved successfully to live storefront!');
@@ -427,7 +427,7 @@ export default function App() {
     const updatedConfig = { ...siteConfig, products: updatedProductsList };
     setSiteConfig(updatedConfig);
     localStorage.setItem('bd_site_config_v1', JSON.stringify(updatedConfig));
-    
+
     // Trigger our unified, queue-safe save system!
     triggerSaveConfig(updatedConfig);
     triggerToast('✨ Bulk prices and availability updated successfully!');
@@ -450,7 +450,7 @@ export default function App() {
       setIsCustomizingMode(false);
     }
   }, [isAdminLoggedIn]);
-  
+
   // Basket Cart State
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('bd_cart_v1');
@@ -515,7 +515,7 @@ export default function App() {
   if (isInitialLoading) {
     return (
       <div className="fixed inset-0 bg-[#F9F6F0] flex flex-col items-center justify-center z-[9999] font-sans">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -556,7 +556,7 @@ export default function App() {
           >
             Synchronizing Storefront with Google Sheets...
           </motion.p>
-          
+
           <div className="mt-6 flex gap-2 items-center text-[10px] text-[#A69F95] font-mono bg-[#EFECE6] px-3 py-1 rounded-full">
             <span>🔌 headless-cms v2.0</span>
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
@@ -599,7 +599,7 @@ export default function App() {
 
         {/* Right Side: Storefront Preview Container */}
         <div className="flex-grow h-full bg-[#E1E3E5] flex flex-col items-center justify-center p-4 overflow-hidden relative">
-          
+
           {/* Preview Topbar Bezel with dimensions indicator */}
           <div className="absolute top-3 left-4 right-4 flex items-center justify-between text-[11px] font-sans font-bold text-gray-500/80">
             <span>PREVIEWING: {activeView.toUpperCase()} PAGE</span>
@@ -609,14 +609,13 @@ export default function App() {
           </div>
 
           {/* Device Frame Viewport Container */}
-          <div 
-            className={`transition-all duration-300 ease-out bg-warm-white flex flex-col shadow-2xl overflow-hidden ${
-              previewDevice === 'mobile' 
-                ? 'w-[390px] h-[740px] rounded-[36px] border-[10px] border-charcoal/95 relative' 
-                : previewDevice === 'tablet' 
-                  ? 'w-[768px] h-[90%] rounded-3xl border-8 border-charcoal/90 relative' 
+          <div
+            className={`transition-all duration-300 ease-out bg-warm-white flex flex-col shadow-2xl overflow-hidden ${previewDevice === 'mobile'
+                ? 'w-[390px] h-[740px] rounded-[36px] border-[10px] border-charcoal/95 relative'
+                : previewDevice === 'tablet'
+                  ? 'w-[768px] h-[90%] rounded-3xl border-8 border-charcoal/90 relative'
                   : 'w-full h-[95%] rounded-xl'
-            }`}
+              }`}
           >
             {previewDevice === 'mobile' && (
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-4 bg-charcoal rounded-full z-50 flex items-center justify-center">
@@ -947,7 +946,7 @@ export default function App() {
                       <label className="text-[10px] font-sans font-bold text-charcoal/70 dark:text-warm-white/70 uppercase tracking-wider">
                         Staff Passcode
                       </label>
-                      <input 
+                      <input
                         type="password"
                         value={passcodeAttempt}
                         onChange={(e) => {
