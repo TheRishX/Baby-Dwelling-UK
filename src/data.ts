@@ -1015,9 +1015,11 @@ export const products: Product[] = [
     originalPrice: 69.99,
     rating: 5,
     reviewsCount: 28,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/1_ccvoqe.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/1_ccvoqe.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/2_y3v4kg.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/3_zf0h3w.webp'
     ],
     category: 'pouches',
     badge: 'CUDDLE',
@@ -1131,9 +1133,11 @@ export const products: Product[] = [
     originalPrice: 74.99,
     rating: 5,
     reviewsCount: 34,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/1_m5tmzx.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/1_m5tmzx.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660277/2_tgowrn.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/3_mdypj2.webp'
     ],
     category: 'pouches',
     badge: 'SNUG',
@@ -1247,9 +1251,11 @@ export const products: Product[] = [
     originalPrice: 64.99,
     rating: 5,
     reviewsCount: 29,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/1_ecimwh.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/1_ecimwh.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660275/2_auvymm.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/3_au831g.webp'
     ],
     category: 'pouches',
     badge: 'NEWBORN',
@@ -1363,9 +1369,11 @@ export const products: Product[] = [
     originalPrice: 79.99,
     rating: 5,
     reviewsCount: 39,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90',
+    image: 'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660277/1_xsvpme.webp',
     images: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCb9GAfeBfYQCafvF1ipKNEos1j4wOzD6nGsb95-2k4m2DRFV7rLxjPQZnJolZpwLzAxb1oVv0IHLXSDzywfaHex4UnZJkmkTxqbKd0x-90lpEWq-RUeWjkNWm7D6BSYgwRPZIMeb6ulVplOSxYVavPnfcQG40jXPKHE6-UOj5ZiCOxmZA8LS4f-hrrg-MrjLeYPNF9lfoQqjARJbL85qspRS9kzsWNzwp7XRXYi0cQ_-Nl2NyOFXZcKzpjiLOXN2x8-0AcsNMDE90'
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660277/1_xsvpme.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/2_kxkhml.webp',
+      'https://res.cloudinary.com/f6trn8aq/image/upload/v1783660276/3_m39y4w.webp'
     ],
     category: 'pouches',
     badge: 'SOFT',
